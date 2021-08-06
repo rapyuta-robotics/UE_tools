@@ -1,0 +1,68 @@
+// Copyright 2021 Rapyuta Robotics Co., Ltd.
+
+#include "Srvs/ROS2{{data.NameCap}}Srv.h"
+
+const rosidl_service_type_support_t* UROS2{{data.NameCap}}Srv::GetTypeSupport() const
+{
+    return ROSIDL_GET_SRV_TYPE_SUPPORT({{data.Group}}, srv, {{data.NameCap}});
+}
+
+void UROS2{{data.NameCap}}Srv::Init()
+{
+    {{data.Group}}__srv__{{data.NameCap}}_Request__init(&{{data.NameCap}}_req);
+    {{data.Group}}__srv__{{data.NameCap}}_Response__init(&{{data.NameCap}}_res);
+}
+
+void UROS2{{data.NameCap}}Srv::Fini()
+{
+    {{data.Group}}__srv__{{data.NameCap}}_Request__fini(&{{data.NameCap}}_req);
+    {{data.Group}}__srv__{{data.NameCap}}_Response__fini(&{{data.NameCap}}_res);
+}
+
+void UROS2{{data.NameCap}}Srv::SetInputs(/* TODO: Fill here */)
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+}
+
+void UROS2{{data.NameCap}}Srv::GetInputs(/* TODO: Fill here */) const
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+}
+
+void UROS2{{data.NameCap}}Srv::SetOutput(/* TODO: Fill here */)
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+}
+
+void UROS2{{data.NameCap}}Srv::GetOutput(/* TODO: Fill here */) const
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+}
+
+void* UROS2{{data.NameCap}}Srv::GetRequest()
+{
+    return &{{data.NameCap}}_req;
+}
+
+void* UROS2{{data.NameCap}}Srv::GetResponse()
+{
+    return &{{data.NameCap}}_res;
+}
+
+const FString UROS2{{data.NameCap}}Srv::SrvRequestToString() const
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+    return FString();
+}
+
+const FString UROS2{{data.NameCap}}Srv::SrvResponseToString() const
+{
+    /* TODO: Fill here */
+	checkNoEntry();
+    return FString();
+}
