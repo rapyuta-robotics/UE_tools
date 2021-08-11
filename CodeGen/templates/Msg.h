@@ -11,6 +11,25 @@
 
 #include "ROS2{{data.NameCap}}Msg.generated.h"
 
+USTRUCT(Blueprintable)
+struct RCLUE_API F{{data.StructName}}
+{
+	GENERATED_BODY()
+
+public:
+	{{data.Types}}
+
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
+	{
+    	/* TODO: Fill here */
+	}
+
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
+	{
+    	/* TODO: Fill here */
+	}
+}
+
 /**
  * 
  */
@@ -26,7 +45,7 @@ public:
 	virtual const rosidl_message_type_support_t* GetTypeSupport() const override;
 	
   	UFUNCTION(BlueprintCallable)
-	void Update(/* TODO: Fill here */);
+	void Update(const F{{data.StructName}} Input);
 	
 	virtual void* Get() override;
 

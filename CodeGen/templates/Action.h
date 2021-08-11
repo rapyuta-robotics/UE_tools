@@ -12,6 +12,25 @@
 
 #include "ROS2{{data.NameCap}}Action.generated.h"
 
+USTRUCT(Blueprintable)
+struct RCLUE_API F{{data.StructName}}
+{
+	GENERATED_BODY()
+
+public:
+	{{data.Types}}
+
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
+	{
+    	/* TODO: Fill here */
+	}
+
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
+	{
+    	/* TODO: Fill here */
+	}
+}
+
 /**
  * 
  */
@@ -27,7 +46,23 @@ public:
 
 	virtual const rosidl_action_type_support_t* GetTypeSupport() const override;
 	
-	/* TODO: Fill here with various setters/getters */
+  	UFUNCTION(BlueprintCallable)
+	void SetGoal(const F{{data.StructName}} Goal);
+
+  	UFUNCTION(BlueprintCallable)
+	void GetGoal(F{{data.StructName}}& Goal) const;
+
+  	UFUNCTION(BlueprintCallable)
+	void SetResult(const F{{data.StructName}} Result);
+
+  	UFUNCTION(BlueprintCallable)
+	void GetResult(F{{data.StructName}}& Result) const;
+
+  	UFUNCTION(BlueprintCallable)
+	void SetFeedback(const F{{data.StructName}} Feedback);
+
+  	UFUNCTION(BlueprintCallable)
+	void GetFeedback(F{{data.StructName}}& Feedback) const;
 	
 	virtual void* GetGoalRequest() override;
 	virtual void* GetGoalResponse() override;

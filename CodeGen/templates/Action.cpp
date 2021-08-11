@@ -27,15 +27,36 @@ void UROS2{{data.NameCap}}Action::Fini()
     Super::Fini();
 }
 
-void UROS2{{data.NameCap}}Action::SetOrder(const int order)
+void UROS2{{data.NameCap}}Action::SetGoal(const F{{data.StructName}} Goal)
 {
-    {{data.NameCap}}_goal_request.goal.order = order;
+    	/* TODO: Fill here */
 }
 
-void UROS2{{data.NameCap}}Action::GetOrder(int& order) const
+void UROS2{{data.NameCap}}Action::GetGoal(F{{data.StructName}}& Goal) const
 {
-    order = {{data.NameCap}}_goal_request.goal.order;
+    	/* TODO: Fill here */
 }
+
+void UROS2{{data.NameCap}}Action::SetResult(const F{{data.StructName}} Result)
+{
+    	/* TODO: Fill here */
+}
+
+void UROS2{{data.NameCap}}Action::GetResult(F{{data.StructName}}& Result) const
+{
+    	/* TODO: Fill here */
+}
+
+void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}} Feedback)
+{
+    	/* TODO: Fill here */
+}
+
+void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}& Feedback) const
+{
+    	/* TODO: Fill here */
+}
+
 
 void* UROS2{{data.NameCap}}Action::GetGoalRequest()
 {

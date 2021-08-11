@@ -10,6 +10,27 @@
 
 #include "ROS2{{data.NameCap}}Srv.generated.h"
 
+// potential problem: if this struct is defined multiple times!
+USTRUCT(Blueprintable)
+struct RCLUE_API F{{data.StructName}}
+{
+	GENERATED_BODY()
+
+public:
+	{{data.Types}}
+
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
+	{
+    	/* TODO: Fill here */
+	}
+
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
+	{
+    	/* TODO: Fill here */
+	}
+}
+
+
 /**
  * 
  */
@@ -29,19 +50,19 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetInputs(/* TODO: Fill here */);
+	void SetInputs(const F{{data.StructName}} Input);
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void GetInputs(/* TODO: Fill here */) const;
+	void GetInputs(F{{data.StructName}}& Input) const;
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void SetOutput(/* TODO: Fill here */);
+	void SetOutput(const F{{data.StructName}} Output);
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void GetOutput(/* TODO: Fill here */) const;
+	void GetOutput(F{{data.StructName}}& Output) const;
 	
 	virtual void* GetRequest() override;
 	virtual void* GetResponse() override;

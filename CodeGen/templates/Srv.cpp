@@ -19,25 +19,25 @@ void UROS2{{data.NameCap}}Srv::Fini()
     {{data.Group}}__srv__{{data.NameCap}}_Response__fini(&{{data.NameCap}}_res);
 }
 
-void UROS2{{data.NameCap}}Srv::SetInputs(/* TODO: Fill here */)
+void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}} Input)
 {
     /* TODO: Fill here */
 	checkNoEntry();
 }
 
-void UROS2{{data.NameCap}}Srv::GetInputs(/* TODO: Fill here */) const
+void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}& Input) const
 {
     /* TODO: Fill here */
 	checkNoEntry();
 }
 
-void UROS2{{data.NameCap}}Srv::SetOutput(/* TODO: Fill here */)
+void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}} Output)
 {
     /* TODO: Fill here */
 	checkNoEntry();
 }
 
-void UROS2{{data.NameCap}}Srv::GetOutput(/* TODO: Fill here */) const
+void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}& Output) const
 {
     /* TODO: Fill here */
 	checkNoEntry();
