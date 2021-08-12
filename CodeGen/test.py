@@ -6,14 +6,14 @@ import re
 # need to handle multiple paths
 ros_path = sys.argv[1]
 
-def getvarname(curval = {}):
+def get_var_name(curval = {}):
     if len(curval) == 2:
         return [str(curval[0]), str(curval[1])]
     elif len(curval) == 3:
         res = []
         final = []
         for v in curval[2]:
-            res = getvarname(v)
+            res = get_var_name(v)
             it = iter(res)
             for r in it:
                 final.append(r)
@@ -54,7 +54,7 @@ def get_types(target_path):
 
 def get_types_dict(target_path):
     types_dict = {}
-    types = get_types(ros_path)
+    types = get_types(target_path)
     for t in types:
         tsplit = t.split('/')
         for subdir, dirs, files in os.walk(target_path):
@@ -76,30 +76,29 @@ def get_types_dict(target_path):
 
     return types_dict
 
+def get_types_cpp(target_path):
+    types_dict = get_types_dict(target_path)
+    types_cpp = {}
+    for key, value in types_dict.items():
+        cpp_type = ''
+        for v in value:
+            res = get_var_name(v)
+            it = iter(res)
+            for r in it:
+                r = convert_to_cpp_type(r)
+                if '[]' in r:
+                    r = r.replace('[]','')
+                    r = 'TArray<' + convert_to_cpp_type(r) + '>'
+                elif '[' in r and ']' in r:
+                    tmp = re.split('\[|\]', r)
+                    tmp[1] = tmp[1].replace('<=','')
+                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
+                cpp_type += r + ' ' + next(it) + ';\n\t'
+        types_cpp[key] = cpp_type
+    return types_cpp
 
-types_dict = get_types_dict(ros_path)
 
-# transform values of dictionary to useful C++ strings representing variables
-types_cpp = {}
-for key, value in types_dict.items():
-    cpp_type = '\t'
-    for v in value:
-        res = getvarname(v)
-        it = iter(res)
-        for r in it:
-            r = convert_to_cpp_type(r)
-            if '[]' in r:
-                r = r.replace('[]','')
-                r = 'TArray<' + convert_to_cpp_type(r) + '>'
-            elif '[' in r and ']' in r:
-                tmp = re.split('\[|\]', r)
-                tmp[1] = tmp[1].replace('<=','')
-                r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
-            cpp_type += r + ' ' + next(it) + ';\n\t'
-    types_cpp[key] = cpp_type
-
-# for key,value in types_dict.items():
-#     print(key + ' -> ' + str(value))
+types_cpp = get_types_cpp(ros_path)
 
 for key,value in types_cpp.items():
     print(key + ' -> ' + str(value))
