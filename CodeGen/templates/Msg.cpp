@@ -21,8 +21,7 @@ const rosidl_message_type_support_t* UROS2{{data.NameCap}}Msg::GetTypeSupport() 
 
 void UROS2{{data.NameCap}}Msg::Update(const F{{data.StructName}} Inputs)
 {
-    /* TODO: Fill here */
-	checkNoEntry();
+    Inputs.SetROS2({{data.Name}}_pub_msg);
 }
 
 void* UROS2{{data.NameCap}}Msg::Get()

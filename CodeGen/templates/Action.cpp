@@ -29,32 +29,32 @@ void UROS2{{data.NameCap}}Action::Fini()
 
 void UROS2{{data.NameCap}}Action::SetGoal(const F{{data.StructName}} Goal)
 {
-    	/* TODO: Fill here */
+    Goal.SetROS2({{data.NameCap}}_goal_request);
 }
 
 void UROS2{{data.NameCap}}Action::GetGoal(F{{data.StructName}}& Goal) const
 {
-    	/* TODO: Fill here */
+    Goal.SetFromROS2({{data.NameCap}}_goal_request);
 }
 
 void UROS2{{data.NameCap}}Action::SetResult(const F{{data.StructName}} Result)
 {
-    	/* TODO: Fill here */
+    Result.SetROS2({{data.NameCap}}_result_response);
 }
 
 void UROS2{{data.NameCap}}Action::GetResult(F{{data.StructName}}& Result) const
 {
-    	/* TODO: Fill here */
+    Result.SetFromROS2({{data.NameCap}}_result_response);
 }
 
 void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}} Feedback)
 {
-    	/* TODO: Fill here */
+    Feedback.SetROS2({{data.NameCap}}_feedback_message);
 }
 
 void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}& Feedback) const
 {
-    	/* TODO: Fill here */
+    Feedback.SetFromROS2({{data.NameCap}}_feedback_message);
 }
 
 

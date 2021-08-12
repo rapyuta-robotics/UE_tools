@@ -30,9 +30,6 @@ public:
 	}
 }
 
-/**
- * 
- */
 UCLASS()
 class RCLUE_API UROS2{{data.NameCap}}Msg : public UROS2GenericMsg
 {
@@ -52,5 +49,5 @@ public:
 private:
 	virtual const FString MsgToString() const override;
 
-	{{data.Group}}__msg__{{data.NameCap}} {{data.Name}}_pub_msg;
+	{{data.Group}}__msg__{{data.NameCap}} {{data.Name}}_msg;
 };

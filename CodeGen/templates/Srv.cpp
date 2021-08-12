@@ -21,26 +21,22 @@ void UROS2{{data.NameCap}}Srv::Fini()
 
 void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}} Input)
 {
-    /* TODO: Fill here */
-	checkNoEntry();
+    Input.SetROS2({{data.NameCap}}_req.state);
 }
 
 void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}& Input) const
 {
-    /* TODO: Fill here */
-	checkNoEntry();
+    Input.SetFromROS2({{data.NameCap}}_req.state);
 }
 
 void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}} Output)
 {
-    /* TODO: Fill here */
-	checkNoEntry();
+    Output.SetROS2({{data.NameCap}}_res.state);
 }
 
 void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}& Output) const
 {
-    /* TODO: Fill here */
-	checkNoEntry();
+    Output.SetFromROS2({{data.NameCap}}_res.state);
 }
 
 void* UROS2{{data.NameCap}}Srv::GetRequest()

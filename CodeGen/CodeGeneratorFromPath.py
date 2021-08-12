@@ -6,8 +6,6 @@ import glob
 import re
 import pandas as pd
 
-#base_types = { 'bool', 'char', 'string', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32', 'uint64', 'float32', 'float64' }
-
 def get_var_name(curval = {}):
     if len(curval) == 2:
         return [str(curval[0]), str(curval[1])]
@@ -34,6 +32,12 @@ def convert_to_cpp_type(t):
         return 'float'
     elif t == 'float64':
         return 'double'
+    elif t == 'string':
+        return 'FString'
+    elif t == 'Vector3' or t == 'Point':
+        return 'FVector'
+    elif t == 'Quaternion':
+        return 'FQuat'
     return t
 
 def get_types(target_paths):
@@ -73,6 +77,9 @@ def get_types_dict(target_paths):
                         content = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' and c != '---' ]
                         types_dict[t] = content
 
+    types_dict.pop('Vector3', None)
+    types_dict.pop('Point', None)
+    types_dict.pop('Quaternion', None)
     for key, value in types_dict.items():
         for index, c in enumerate(value):
             v = c[0].replace('[]','')
@@ -84,6 +91,8 @@ def get_types_dict(target_paths):
 def get_types_cpp(target_paths):
     types_dict = get_types_dict(target_paths)
     types_cpp = {}
+    set_ros2_cpp = {}
+    set_from_ros2_cpp = {}
     for key, value in types_dict.items():
         cpp_type = ''
         for v in value:
@@ -116,30 +125,20 @@ Group = os.path.basename(os.path.dirname(ue_path))
 
 types_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
 
-# for key,value in types_cpp.items():
-#     print(key + ' -> ' + str(value))
-
-#[print(key + ' -> ' + value) for key, value in types_cpp.items() if 'Fibonacci' in key]
 
 # generate code
 for subdir in ['action','srv','msg']:
     if os.path.exists(ue_path+'/'+subdir):
         os.chdir(ue_path+'/'+subdir)
         for file in glob.glob('*.'+subdir):
-            print(file)
-            # message = pd.read_csv(file, header=None, index_col=None, sep=' ')
-            # message_d = dict(zip(message[[1]].values.ravel(), message[[0]].values.ravel()))
-            
+            print(file)            
             info = {}
             info['Group'] = Group
             info['Name'] = re.sub(r'(?<!^)(?=[A-Z])', '_', os.path.splitext(file)[0]).lower()
             info['NameCap'] = os.path.splitext(file)[0]
             info['StructName'] = info['NameCap']
             info['Types'] = types_cpp[Group + '/' + info['NameCap']]
-            # for key, value in message_d.items():
-            #         if message_d[key] != '---':
-            #             info['Types'] += value + ' ' + key + ';\n\t'
-            print(info)
+            #print(info)
 
             os.chdir(current_dir)
     

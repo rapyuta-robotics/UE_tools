@@ -31,9 +31,6 @@ public:
 	}
 }
 
-/**
- * 
- */
 UCLASS()
 class RCLUE_API UROS2{{data.NameCap}}Action : public UROS2GenericAction
 {
