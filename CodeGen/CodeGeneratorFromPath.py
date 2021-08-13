@@ -220,7 +220,7 @@ for subdir in ['action','srv','msg']:
                 print('type not found')
 
             # this should only happen if the file does not exist
-            filename=current_dir+'/ROS2'+info['NameCap']+'Msg'
+            filename=current_dir+'/ROS2'+info['NameCap']+subdir.title()
             file_h = open(filename+'.h', "w")
             file_cpp = open(filename+'.cpp', "w")
 

@@ -28,7 +28,7 @@ public:
 	{
     	{{data.SetROS2}}
 	}
-}
+};
 
 UCLASS()
 class RCLUE_API UROS2{{data.NameCap}}Msg : public UROS2GenericMsg
@@ -47,7 +47,7 @@ public:
 	virtual void* Get() override;
 
 private:
-	virtual const FString MsgToString() const override;
+	virtual FString MsgToString() const override;
 
 	{{data.Group}}__msg__{{data.NameCap}} {{data.Name}}_msg;
 };

@@ -28,7 +28,7 @@ public:
 	{
     	{{data.SetROS2}}
 	}
-}
+};
 
 UCLASS()
 class RCLUE_API UROS2{{data.NameCap}}Srv : public UROS2GenericSrv
