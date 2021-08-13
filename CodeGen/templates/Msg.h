@@ -21,12 +21,12 @@ public:
 
 	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
 	{
-    	/* TODO: Fill here */
+    	{{data.SetFromROS2}}
 	}
 
 	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
 	{
-    	/* TODO: Fill here */
+    	{{data.SetROS2}}
 	}
 }
 

@@ -23,6 +23,23 @@ def get_var_name(curval = {}):
         print('ERROR with ' + str(curval))
     return '',''
 
+def get_ros_var_name(curval = {}):
+    if len(curval) == 2:
+        return [str(curval[0]), str(curval[1])]
+    elif len(curval) == 3:
+        res = []
+        final = []
+        for v in curval[2]:
+            res = get_ros_var_name(v)
+            it = iter(res)
+            for r in it:
+                final.append(r)
+                final.append(curval[1] + '.' + next(it))
+        return final
+    else:
+        print('ERROR with ' + str(curval))
+    return '',''
+
 def convert_to_cpp_type(t):
     if t == 'int32':
         return 'int'
@@ -88,6 +105,28 @@ def get_types_dict(target_paths):
 
     return types_dict
 
+def setter(r, v_type, v_ros):
+    if r == 'FVector':
+        return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\n\t\t'
+    elif r == 'FQuat':
+        return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\t\t' + v_type + '.W = data.' + v_ros + '.w;\n\n\t\t'
+    elif r == 'FString':
+        return v_type + '.AppendChars(data.' + v_ros + '.data, data.' + v_ros + '.size);\n\n\t\t'
+    else:
+        return v_type + ' = data.' + v_ros + ';\n\n\t\t'
+
+def getter(r, v_type, v_ros):
+    if r == 'FVector':
+        return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
+    elif r == 'FQuat':
+        return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\t\tdata.' + v_ros + '.w = ' + v_type + '.W;\n\n\t\t'
+    elif r == 'FString':
+        return 'if (data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\tfree(data.' + v_ros + '.data);\n\t\t}' \
+            + '\n\t\tdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(data.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
+            + 'data.' + v_ros + '.size = ' + v_type + '.Len();\n\t\tdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
+    else:
+        return 'data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
+
 def get_types_cpp(target_paths):
     types_dict = get_types_dict(target_paths)
     types_cpp = {}
@@ -95,6 +134,8 @@ def get_types_cpp(target_paths):
     set_from_ros2_cpp = {}
     for key, value in types_dict.items():
         cpp_type = ''
+        set_ros2 = ''
+        set_from_ros2 = ''
         for v in value:
             res = get_var_name(v)
             it = iter(res)
@@ -108,8 +149,29 @@ def get_types_cpp(target_paths):
                     tmp[1] = tmp[1].replace('<=','')
                     r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
                 cpp_type += r + ' ' + next(it) + ';\n\t'
+
+            res_ros = get_ros_var_name(v)
+            it_ros = iter(res_ros)
+            it_type = iter(res)
+            for r in it_ros:
+                r = convert_to_cpp_type(r)
+                if '[]' in r:
+                    r = r.replace('[]','')
+                    r = 'TArray<' + convert_to_cpp_type(r) + '>'
+                elif '[' in r and ']' in r:
+                    tmp = re.split('\[|\]', r)
+                    tmp[1] = tmp[1].replace('<=','')
+                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
+                v_ros = next(it_ros)
+                next(it_type)
+                v_type = next(it_type)
+                set_from_ros2 += setter(r, v_type, v_ros)
+                set_ros2      += getter(r, v_type, v_ros)
+
         types_cpp[key] = cpp_type
-    return types_cpp
+        set_from_ros2_cpp[key] = set_from_ros2
+        set_ros2_cpp[key] = set_ros2
+    return types_cpp, set_from_ros2_cpp, set_ros2_cpp
 
 
 
@@ -123,7 +185,7 @@ ros_path = sys.argv[1]
 ue_path = sys.argv[2]
 Group = os.path.basename(os.path.dirname(ue_path))
 
-types_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
+types_cpp, set_from_ros2_cpp, set_ros2_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
 
 
 # generate code
@@ -138,7 +200,8 @@ for subdir in ['action','srv','msg']:
             info['NameCap'] = os.path.splitext(file)[0]
             info['StructName'] = info['NameCap']
             info['Types'] = types_cpp[Group + '/' + info['NameCap']]
-            #print(info)
+            info['SetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap']]
+            info['SetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap']]
 
             os.chdir(current_dir)
     
