@@ -44,6 +44,13 @@ public:
   	UFUNCTION(BlueprintCallable)
 	void Update(const F{{data.StructName}} Input);
 	
+	// TODO these are for a future refactoring, as it requires to adapt the rest of the codes
+  	UFUNCTION(BlueprintCallable)
+	void SetMsg(const F{{data.StructName}} Input);
+	
+  	UFUNCTION(BlueprintCallable)
+	void GetMsg(const F{{data.StructName}}& Output);
+	
 	virtual void* Get() override;
 
 private:

@@ -193,15 +193,41 @@ for subdir in ['action','srv','msg']:
     if os.path.exists(ue_path+'/'+subdir):
         os.chdir(ue_path+'/'+subdir)
         for file in glob.glob('*.'+subdir):
-            print(file)            
+            print(file)
+            
             info = {}
             info['Group'] = Group
             info['Name'] = re.sub(r'(?<!^)(?=[A-Z])', '_', os.path.splitext(file)[0]).lower()
             info['NameCap'] = os.path.splitext(file)[0]
             info['StructName'] = info['NameCap']
-            info['Types'] = types_cpp[Group + '/' + info['NameCap']]
-            info['SetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap']]
-            info['SetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap']]
+            if subdir == 'msg':
+                info['Types'] = types_cpp[Group + '/' + info['NameCap']]
+                info['SetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap']]
+                info['SetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap']]
+            elif subdir == 'srv':
+                info['ReqTypes'] = types_cpp[Group + '/' + info['NameCap'] + '_Request']
+                info['ReqSetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_Request']
+                info['ReqSetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap'] + '_Request']
+                info['ResTypes'] = types_cpp[Group + '/' + info['NameCap'] + '_Response']
+                info['ResSetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_Response']
+                info['ResSetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap'] + '_Response']
+            elif subdir == 'action':
+                info['GoalReqTypes'] = ''#types_cpp
+                info['GoalReqSetFromROS2'] = ''#set_from_ros2_cpp
+                info['GoalReqSetROS2'] = ''#set_ros2_cpp
+                info['GoalResTypes'] = ''#types_cpp
+                info['GoalResSetFromROS2'] = ''#set_from_ros2_cpp
+                info['GoalResSetROS2'] = ''#set_ros2_cpp
+                info['ResultReqTypes'] = ''#types_cpp
+                info['ResultReqSetFromROS2'] = ''#set_from_ros2_cpp
+                info['ResultReqSetROS2'] = ''#set_ros2_cpp
+                info['ResultResTypes'] = ''#types_cpp
+                info['ResultResSetFromROS2'] = ''#set_from_ros2_cpp
+                info['ResultResSetROS2'] = ''#set_ros2_cpp
+                info['FeedbackTypes'] = ''#types_cpp
+                info['FeedbackSetFromROS2'] = ''#set_from_ros2_cpp
+                info['FeedbackSetROS2'] = ''#set_ros2_cpp
+                # to fill 
 
             os.chdir(current_dir)
     

@@ -24,6 +24,16 @@ void UROS2{{data.NameCap}}Msg::Update(const F{{data.StructName}} Inputs)
     Inputs.SetROS2({{data.Name}}_msg);
 }
 
+void UROS2{{data.NameCap}}Msg::SetMsg(const F{{data.StructName}} Inputs)
+{
+    Inputs.SetROS2({{data.Name}}_msg);
+}
+
+void UROS2{{data.NameCap}}Msg::GetMsg(const F{{data.StructName}}& Outputs)
+{
+    Inputs.SetFromROS2({{data.Name}}_msg);
+}
+
 void* UROS2{{data.NameCap}}Msg::Get()
 {
 	return &{{data.Name}}_msg;

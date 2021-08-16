@@ -12,21 +12,40 @@
 
 // potential problem: if this struct is defined multiple times!
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}
+struct RCLUE_API F{{data.StructName}}_Request
 {
 	GENERATED_BODY()
 
 public:
-	{{data.Types}}
+	{{data.ReqTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_Request data)
 	{
-    	{{data.SetFromROS2}}
+    	{{data.ReqSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_Request& data) const
 	{
-    	{{data.SetROS2}}
+    	{{data.ReqSetROS2}}
+	}
+};
+
+USTRUCT(Blueprintable)
+struct RCLUE_API F{{data.StructName}}_Response
+{
+	GENERATED_BODY()
+
+public:
+	{{data.ResTypes}}
+
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_Response data)
+	{
+    	{{data.ResSetFromROS2}}
+	}
+
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_Response& data) const
+	{
+    	{{data.ResSetROS2}}
 	}
 };
 
@@ -46,19 +65,36 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetInputs(const F{{data.StructName}} Input);
+	void SetInputs(const F{{data.StructName}}_Request Input);
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void GetInputs(F{{data.StructName}}& Input) const;
+	void GetInputs(F{{data.StructName}}_Request& Input) const;
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void SetOutput(const F{{data.StructName}} Output);
+	void SetOutput(const F{{data.StructName}}_Response Output);
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void GetOutput(F{{data.StructName}}& Output) const;
+	void GetOutput(F{{data.StructName}}_Response& Output) const;
+	
+	// TODO these are for a future refactoring, as it requires to adapt the rest of the codes
+	// used by client
+  	UFUNCTION(BlueprintCallable)
+	void SetRequest(const F{{data.StructName}}_Request Request);
+	
+	// used by service
+  	UFUNCTION(BlueprintCallable)
+	void GetRequest(F{{data.StructName}}_Request& Request) const;
+	
+	// used by service
+  	UFUNCTION(BlueprintCallable)
+	void SetResponse(const F{{data.StructName}}_Response Response);
+	
+	// used by client
+  	UFUNCTION(BlueprintCallable)
+	void GetResponse(F{{data.StructName}}_Response& Response) const;
 	
 	virtual void* GetRequest() override;
 	virtual void* GetResponse() override;

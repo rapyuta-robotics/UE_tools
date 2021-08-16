@@ -19,22 +19,42 @@ void UROS2{{data.NameCap}}Srv::Fini()
     {{data.Group}}__srv__{{data.NameCap}}_Response__fini(&{{data.NameCap}}_res);
 }
 
-void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}} Input)
+void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}}_Request Input)
 {
     Input.SetROS2({{data.NameCap}}_req.state);
 }
 
-void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}& Input) const
+void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}_Request& Input) const
 {
     Input.SetFromROS2({{data.NameCap}}_req.state);
 }
 
-void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}} Output)
+void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}}_Response Output)
 {
     Output.SetROS2({{data.NameCap}}_res.state);
 }
 
-void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}& Output) const
+void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}_Response& Output) const
+{
+    Output.SetFromROS2({{data.NameCap}}_res.state);
+}
+
+void UROS2{{data.NameCap}}Srv::SetRequest(const F{{data.StructName}}_Request Request)
+{
+    Input.SetROS2({{data.NameCap}}_req.state);
+}
+
+void UROS2{{data.NameCap}}Srv::GetRequest(F{{data.StructName}}_Request& Request) const
+{
+    Input.SetFromROS2({{data.NameCap}}_req.state);
+}
+
+void UROS2{{data.NameCap}}Srv::SetResponse(const F{{data.StructName}}_Response Response)
+{
+    Output.SetROS2({{data.NameCap}}_res.state);
+}
+
+void UROS2{{data.NameCap}}Srv::GetResponse(F{{data.StructName}}_Response& Response) const
 {
     Output.SetFromROS2({{data.NameCap}}_res.state);
 }
