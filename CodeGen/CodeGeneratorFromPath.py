@@ -20,7 +20,7 @@ def get_var_name(curval = {}):
                 final.append(curval[1] + '_' + next(it))
         return final
     else:
-        print('ERROR with ' + str(curval))
+        print('ERROR with ' + str(curval) + ' (get_var_name)')
     return '',''
 
 def get_ros_var_name(curval = {}):
@@ -37,7 +37,7 @@ def get_ros_var_name(curval = {}):
                 final.append(curval[1] + '.' + next(it))
         return final
     else:
-        print('ERROR with ' + str(curval))
+        print('ERROR with ' + str(curval) + ' (get_ros_var_name)')
     return '',''
 
 def convert_to_cpp_type(t):
@@ -91,8 +91,31 @@ def get_types_dict(target_paths):
                         with open(os.path.join(subdir,fi)) as f:
                             content = f.readlines()
                         content = [ x.strip() for x in content ]
-                        content = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' and c != '---' ]
-                        types_dict[t] = content
+                        if not fi.endswith('.action'):
+                            content = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' and c != '---' ] # this needs to be changed to parse actions correctly
+                            types_dict[t] = content
+                        else:
+                            tmpdata = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' ]
+                            counter = 0
+                            for td in tmpdata:
+                                if not td == ['---']:
+                                    if counter == 0:
+                                        if (t+'_SendGoal') in types_dict and td not in types_dict[t+'_SendGoal']:
+                                            types_dict[t+'_SendGoal'].append(td)
+                                        else:
+                                            types_dict[t+'_SendGoal'] = [td]
+                                    elif counter == 1:
+                                        if (t+'_GetResult') in types_dict and td not in types_dict[t+'_GetResult']:
+                                            types_dict[t+'_GetResult'].append(td)
+                                        else:
+                                            types_dict[t+'_GetResult'] = [td]
+                                    elif counter == 2:
+                                        if (t+'_Feedback') in types_dict and td not in types_dict[t+'_Feedback']:
+                                            types_dict[t+'_Feedback'].append(td)
+                                        else:
+                                            types_dict[t+'_Feedback'] = [td]
+                                else:
+                                    counter += 1
 
     types_dict.pop('Vector3', None)
     types_dict.pop('Point', None)
@@ -112,6 +135,8 @@ def setter(r, v_type, v_ros):
         return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\t\t' + v_type + '.W = data.' + v_ros + '.w;\n\n\t\t'
     elif r == 'FString':
         return v_type + '.AppendChars(data.' + v_ros + '.data, data.' + v_ros + '.size);\n\n\t\t'
+    elif 'TArray' in r:
+        return 'for (int i=0; i<' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
     else:
         return v_type + ' = data.' + v_ros + ';\n\n\t\t'
 
@@ -124,6 +149,8 @@ def getter(r, v_type, v_ros):
         return 'if (data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\tfree(data.' + v_ros + '.data);\n\t\t}' \
             + '\n\t\tdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(data.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
             + 'data.' + v_ros + '.size = ' + v_type + '.Len();\n\t\tdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
+    elif 'TArray' in r:
+        return 'for (int i=0; i<' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
     else:
         return 'data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
@@ -186,6 +213,7 @@ ue_path = sys.argv[2]
 Group = os.path.basename(os.path.dirname(ue_path))
 
 types_cpp, set_from_ros2_cpp, set_ros2_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
+#types_cpp, set_from_ros2_cpp, set_ros2_cpp = get_types_cpp([os.path.split(os.path.dirname(ue_path))[0], os.path.split(os.path.dirname(ue_path))[0]])
 
 
 # generate code
@@ -212,21 +240,29 @@ for subdir in ['action','srv','msg']:
                 info['ResSetFromROS2'] = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_Response']
                 info['ResSetROS2'] = set_ros2_cpp[Group + '/' + info['NameCap'] + '_Response']
             elif subdir == 'action':
-                info['GoalReqTypes'] = ''#types_cpp
-                info['GoalReqSetFromROS2'] = ''#set_from_ros2_cpp
-                info['GoalReqSetROS2'] = ''#set_ros2_cpp
-                info['GoalResTypes'] = ''#types_cpp
-                info['GoalResSetFromROS2'] = ''#set_from_ros2_cpp
-                info['GoalResSetROS2'] = ''#set_ros2_cpp
-                info['ResultReqTypes'] = ''#types_cpp
-                info['ResultReqSetFromROS2'] = ''#set_from_ros2_cpp
-                info['ResultReqSetROS2'] = ''#set_ros2_cpp
-                info['ResultResTypes'] = ''#types_cpp
-                info['ResultResSetFromROS2'] = ''#set_from_ros2_cpp
-                info['ResultResSetROS2'] = ''#set_ros2_cpp
-                info['FeedbackTypes'] = ''#types_cpp
-                info['FeedbackSetFromROS2'] = ''#set_from_ros2_cpp
-                info['FeedbackSetROS2'] = ''#set_ros2_cpp
+                info['GoalTypes'] = types_cpp[Group + '/' + info['NameCap'] + '_SendGoal']
+                goal_set_from_ros2 = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_SendGoal']
+                idx = goal_set_from_ros2.find('data.')+4
+                info['GoalSetFromROS2'] = goal_set_from_ros2[:idx] + '.goal' + goal_set_from_ros2[idx:]
+                goal_set_ros2 = set_ros2_cpp[Group + '/' + info['NameCap'] + '_SendGoal']
+                idx = goal_set_ros2.find('data.')+4
+                info['GoalSetROS2'] = goal_set_ros2[:idx] + '.goal' + goal_set_ros2[idx:]
+                
+                info['ResultTypes'] = types_cpp[Group + '/' + info['NameCap'] + '_GetResult']
+                result_set_from_ros2 = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_GetResult']
+                idx = result_set_from_ros2.find('data.')+4
+                info['ResultSetFromROS2'] = result_set_from_ros2[:idx] + '.result' + result_set_from_ros2[idx:]
+                result_set_ros2 = set_ros2_cpp[Group + '/' + info['NameCap'] + '_GetResult']
+                idx = result_set_ros2.find('data.')+4
+                info['ResultSetROS2'] = result_set_ros2[:idx] + '.result' + result_set_ros2[idx:]
+                
+                info['FeedbackTypes'] = types_cpp[Group + '/' + info['NameCap'] + '_Feedback']
+                feedback_set_from_ros2 = set_from_ros2_cpp[Group + '/' + info['NameCap'] + '_Feedback']
+                idx = feedback_set_from_ros2.find('data.')+4
+                info['FeedbackSetFromROS2'] = feedback_set_from_ros2[:idx] + '.feedback' + feedback_set_from_ros2[idx:]
+                feedback_set_ros2 = set_ros2_cpp[Group + '/' + info['NameCap'] + '_Feedback']
+                idx = feedback_set_ros2.find('data.')+4
+                info['FeedbackSetROS2'] = feedback_set_ros2[:idx] + '.feedback' + feedback_set_ros2[idx:]
                 # to fill 
 
             os.chdir(current_dir)

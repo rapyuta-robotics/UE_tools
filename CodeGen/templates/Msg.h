@@ -49,7 +49,7 @@ public:
 	void SetMsg(const F{{data.StructName}} Input);
 	
   	UFUNCTION(BlueprintCallable)
-	void GetMsg(const F{{data.StructName}}& Output);
+	void GetMsg(F{{data.StructName}}& Output);
 	
 	virtual void* Get() override;
 

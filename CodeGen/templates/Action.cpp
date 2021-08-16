@@ -95,7 +95,7 @@ void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}}_Feedbac
     Feedback.SetROS2({{data.NameCap}}_feedback_message);
 }
 
-void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}& Feedback) const
+void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}_FeedbackMessage& Feedback) const
 {
     Feedback.SetFromROS2({{data.NameCap}}_feedback_message);
 }

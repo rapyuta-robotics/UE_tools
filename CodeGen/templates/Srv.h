@@ -19,12 +19,12 @@ struct RCLUE_API F{{data.StructName}}_Request
 public:
 	{{data.ReqTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_Request data)
+	void SetFromROS2({{data.Group}}__srv__{{data.NameCap}}_Request data)
 	{
     	{{data.ReqSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_Request& data) const
+	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Request& data) const
 	{
     	{{data.ReqSetROS2}}
 	}
@@ -38,12 +38,12 @@ struct RCLUE_API F{{data.StructName}}_Response
 public:
 	{{data.ResTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_Response data)
+	void SetFromROS2({{data.Group}}__srv__{{data.NameCap}}_Response data)
 	{
     	{{data.ResSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_Response& data) const
+	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Response& data) const
 	{
     	{{data.ResSetROS2}}
 	}
@@ -100,8 +100,8 @@ public:
 	virtual void* GetResponse() override;
 
 private:
-	virtual const FString SrvRequestToString() const override;
-	virtual const FString SrvResponseToString() const override;
+	virtual FString SrvRequestToString() const override;
+	virtual FString SrvResponseToString() const override;
 
 	{{data.Group}}__srv__{{data.NameCap}}_Request {{data.NameCap}}_req;
 	{{data.Group}}__srv__{{data.NameCap}}_Response {{data.NameCap}}_res;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 
+#include "unique_identifier_msgs/msg/uuid.h"
 #include "{{data.Group}}/action/{{data.Name}}.h"
 #include "action_msgs/srv/cancel_goal.h"
 
@@ -18,16 +19,27 @@ struct RCLUE_API F{{data.StructName}}_SendGoal_Request
 	GENERATED_BODY()
 
 public:
-	{{data.GoalReqTypes}}
+  	TArray<uint, TFixedAllocator<16>> goal_id;
+	{{data.GoalTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_SendGoal_Request data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request data)
 	{
-    	{{data.GoalReqSetFromROS2}}
+		for (int i=0; i<36; i++)
+		{
+			goal_id[i] = data.goal_id.uuid[i];
+		}
+
+    	{{data.GoalSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_SendGoal_Request& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& data) const
 	{
-    	{{data.GoalReqSetROS2}}
+		for (int i=0; i<36; i++)
+		{
+			data.goal_id.uuid[i] = goal_id[i];
+		}
+
+    	{{data.GoalSetROS2}}
 	}
 };
 
@@ -37,16 +49,22 @@ struct RCLUE_API F{{data.StructName}}_SendGoal_Response
 	GENERATED_BODY()
 
 public:
-	{{data.GoalResTypes}}
+	bool accepted;
+	int stamp_sec;
+	uint stamp_nanosec;
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_SendGoal_Response data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response data)
 	{
-    	{{data.GoalResSetFromROS2}}
+    	accepted = data.accepted;
+		stamp_sec = data.stamp.sec;
+		stamp_nanosec = data.stamp.nanosec;
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_SendGoal_Response& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& data) const
 	{
-    	{{data.GoalResSetROS2}}
+    	data.accepted = accepted;
+		data.stamp.sec = stamp_sec;
+		data.stamp.nanosec = stamp_nanosec;
 	}
 };
 
@@ -56,16 +74,23 @@ struct RCLUE_API F{{data.StructName}}_GetResult_Request
 	GENERATED_BODY()
 
 public:
-	{{data.ResultReqTypes}}
+  	TArray<uint, TFixedAllocator<16>> goal_id;
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_GetResult_Request data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request data)
 	{
-    	{{data.ResultReqSetFromROS2}}
+		for (int i=0; i<36; i++)
+		{
+			goal_id[i] = data.goal_id.uuid[i];
+		}
+
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_GetResult_Request& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request& data) const
 	{
-    	{{data.ResultReqSetROS2}}
+		for (int i=0; i<36; i++)
+		{
+			data.goal_id.uuid[i] = goal_id[i];
+		}
 	}
 };
 
@@ -75,16 +100,19 @@ struct RCLUE_API F{{data.StructName}}_GetResult_Response
 	GENERATED_BODY()
 
 public:
-	{{data.ResultResTypes}}
+	int8 status;
+	{{data.ResultTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_GetResult_Response data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response data)
 	{
-    	{{data.ResultResSetFromROS2}}
+		status = data.status;
+    	{{data.ResultSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_GetResult_Response& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& data) const
 	{
-    	{{data.ResultResSetROS2}}
+		data.status = status;
+    	{{data.ResultSetROS2}}
 	}
 };
 
@@ -94,15 +122,26 @@ struct RCLUE_API F{{data.StructName}}_FeedbackMessage
 	GENERATED_BODY()
 
 public:
+  	TArray<uint, TFixedAllocator<16>> goal_id;
 	{{data.FeedbackTypes}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}}_FeedbackMessage data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage data)
 	{
+		for (int i=0; i<36; i++)
+		{
+			goal_id[i] = data.goal_id.uuid[i];
+		}
+
     	{{data.FeedbackSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}_FeedbackMessage& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& data) const
 	{
+		for (int i=0; i<36; i++)
+		{
+			data.goal_id.uuid[i] = goal_id[i];
+		}
+		
     	{{data.FeedbackSetROS2}}
 	}
 };
@@ -145,16 +184,16 @@ public:
 	void GetGoalResponse(F{{data.StructName}}_SendGoal_Response& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalRequest(const F{{data.StructName}}_GetResult_Request Goal);
+	void SetResultRequest(const F{{data.StructName}}_GetResult_Request Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalRequest(F{{data.StructName}}_GetResult_Request& Goal) const;
+	void GetResultRequest(F{{data.StructName}}_GetResult_Request& Result) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalResponse(const F{{data.StructName}}_GetResult_Response Goal);
+	void SetResultResponse(const F{{data.StructName}}_GetResult_Response Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalResponse(F{{data.StructName}}_GetResult_Response& Goal) const;
+	void GetResultResponse(F{{data.StructName}}_GetResult_Response& Result) const;
 
 
 

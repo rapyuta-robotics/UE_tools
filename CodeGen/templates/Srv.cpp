@@ -21,42 +21,42 @@ void UROS2{{data.NameCap}}Srv::Fini()
 
 void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}}_Request Input)
 {
-    Input.SetROS2({{data.NameCap}}_req.state);
+    Input.SetROS2({{data.NameCap}}_req);
 }
 
 void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}_Request& Input) const
 {
-    Input.SetFromROS2({{data.NameCap}}_req.state);
+    Input.SetFromROS2({{data.NameCap}}_req);
 }
 
 void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}}_Response Output)
 {
-    Output.SetROS2({{data.NameCap}}_res.state);
+    Output.SetROS2({{data.NameCap}}_res);
 }
 
 void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}_Response& Output) const
 {
-    Output.SetFromROS2({{data.NameCap}}_res.state);
+    Output.SetFromROS2({{data.NameCap}}_res);
 }
 
 void UROS2{{data.NameCap}}Srv::SetRequest(const F{{data.StructName}}_Request Request)
 {
-    Input.SetROS2({{data.NameCap}}_req.state);
+    Request.SetROS2({{data.NameCap}}_req);
 }
 
 void UROS2{{data.NameCap}}Srv::GetRequest(F{{data.StructName}}_Request& Request) const
 {
-    Input.SetFromROS2({{data.NameCap}}_req.state);
+    Request.SetFromROS2({{data.NameCap}}_req);
 }
 
 void UROS2{{data.NameCap}}Srv::SetResponse(const F{{data.StructName}}_Response Response)
 {
-    Output.SetROS2({{data.NameCap}}_res.state);
+    Response.SetROS2({{data.NameCap}}_res);
 }
 
 void UROS2{{data.NameCap}}Srv::GetResponse(F{{data.StructName}}_Response& Response) const
 {
-    Output.SetFromROS2({{data.NameCap}}_res.state);
+    Response.SetFromROS2({{data.NameCap}}_res);
 }
 
 void* UROS2{{data.NameCap}}Srv::GetRequest()
@@ -69,14 +69,14 @@ void* UROS2{{data.NameCap}}Srv::GetResponse()
     return &{{data.NameCap}}_res;
 }
 
-const FString UROS2{{data.NameCap}}Srv::SrvRequestToString() const
+FString UROS2{{data.NameCap}}Srv::SrvRequestToString() const
 {
     /* TODO: Fill here */
 	checkNoEntry();
     return FString();
 }
 
-const FString UROS2{{data.NameCap}}Srv::SrvResponseToString() const
+FString UROS2{{data.NameCap}}Srv::SrvResponseToString() const
 {
     /* TODO: Fill here */
 	checkNoEntry();
