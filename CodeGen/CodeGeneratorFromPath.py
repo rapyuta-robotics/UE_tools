@@ -175,7 +175,7 @@ def get_types_cpp(target_paths):
                     tmp = re.split('\[|\]', r)
                     tmp[1] = tmp[1].replace('<=','')
                     r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
-                cpp_type += r + ' ' + next(it) + ';\n\t'
+                cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + next(it) + ';\n\n\t'
 
             res_ros = get_ros_var_name(v)
             it_ros = iter(res_ros)

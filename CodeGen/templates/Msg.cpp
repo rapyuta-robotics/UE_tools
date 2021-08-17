@@ -19,11 +19,6 @@ const rosidl_message_type_support_t* UROS2{{data.NameCap}}Msg::GetTypeSupport() 
 	return ROSIDL_GET_MSG_TYPE_SUPPORT({{data.Group}}, msg, {{data.NameCap}});
 }
 
-void UROS2{{data.NameCap}}Msg::Update(const F{{data.StructName}} Inputs)
-{
-    Inputs.SetROS2({{data.Name}}_msg);
-}
-
 void UROS2{{data.NameCap}}Msg::SetMsg(const F{{data.StructName}} Inputs)
 {
     Inputs.SetROS2({{data.Name}}_msg);

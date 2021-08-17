@@ -157,20 +157,7 @@ public:
 	virtual void Fini() override;
 
 	virtual const rosidl_action_type_support_t* GetTypeSupport() const override;
-	
-  	UFUNCTION(BlueprintCallable)
-	void SetGoal(const F{{data.StructName}}_SendGoal_Request Goal);
 
-  	UFUNCTION(BlueprintCallable)
-	void GetGoal(F{{data.StructName}}_SendGoal_Request& Goal) const;
-
-  	UFUNCTION(BlueprintCallable)
-	void SetResult(const F{{data.StructName}}_GetResult_Request Result);
-
-  	UFUNCTION(BlueprintCallable)
-	void GetResult(F{{data.StructName}}_GetResult_Request& Result) const;
-
-	// TODO these are for a future refactoring, as it requires to adapt the rest of the codes	
   	UFUNCTION(BlueprintCallable)
 	void SetGoalRequest(const F{{data.StructName}}_SendGoal_Request Goal);
 

@@ -65,23 +65,6 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetInputs(const F{{data.StructName}}_Request Input);
-	
-	// used by service
-  	UFUNCTION(BlueprintCallable)
-	void GetInputs(F{{data.StructName}}_Request& Input) const;
-	
-	// used by service
-  	UFUNCTION(BlueprintCallable)
-	void SetOutput(const F{{data.StructName}}_Response Output);
-	
-	// used by client
-  	UFUNCTION(BlueprintCallable)
-	void GetOutput(F{{data.StructName}}_Response& Output) const;
-	
-	// TODO these are for a future refactoring, as it requires to adapt the rest of the codes
-	// used by client
-  	UFUNCTION(BlueprintCallable)
 	void SetRequest(const F{{data.StructName}}_Request Request);
 	
 	// used by service

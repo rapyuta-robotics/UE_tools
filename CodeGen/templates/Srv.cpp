@@ -19,26 +19,6 @@ void UROS2{{data.NameCap}}Srv::Fini()
     {{data.Group}}__srv__{{data.NameCap}}_Response__fini(&{{data.NameCap}}_res);
 }
 
-void UROS2{{data.NameCap}}Srv::SetInputs(const F{{data.StructName}}_Request Input)
-{
-    Input.SetROS2({{data.NameCap}}_req);
-}
-
-void UROS2{{data.NameCap}}Srv::GetInputs(F{{data.StructName}}_Request& Input) const
-{
-    Input.SetFromROS2({{data.NameCap}}_req);
-}
-
-void UROS2{{data.NameCap}}Srv::SetOutput(const F{{data.StructName}}_Response Output)
-{
-    Output.SetROS2({{data.NameCap}}_res);
-}
-
-void UROS2{{data.NameCap}}Srv::GetOutput(F{{data.StructName}}_Response& Output) const
-{
-    Output.SetFromROS2({{data.NameCap}}_res);
-}
-
 void UROS2{{data.NameCap}}Srv::SetRequest(const F{{data.StructName}}_Request Request)
 {
     Request.SetROS2({{data.NameCap}}_req);
