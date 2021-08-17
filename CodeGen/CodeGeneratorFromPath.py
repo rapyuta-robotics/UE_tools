@@ -6,6 +6,7 @@ import glob
 import re
 import pandas as pd
 
+# generate variable name for C++
 def get_var_name(curval = {}):
     if len(curval) == 2:
         return [str(curval[0]), str(curval[1])]
@@ -23,6 +24,7 @@ def get_var_name(curval = {}):
         print('ERROR with ' + str(curval) + ' (get_var_name)')
     return '',''
 
+# generate msg variable access for ROS msg
 def get_ros_var_name(curval = {}):
     if len(curval) == 2:
         return [str(curval[0]), str(curval[1])]
@@ -57,6 +59,7 @@ def convert_to_cpp_type(t):
         return 'FQuat'
     return t
 
+# scan msg, srv and action files to find all types present in the given target_paths
 def get_types(target_paths):
     types = set()
     for target_path in target_paths:
@@ -77,6 +80,7 @@ def get_types(target_paths):
 
     return types
 
+# create a dictionary matching types with the corresponding expanded contents expressed with basic types
 def get_types_dict(target_paths):
     types_dict = {}
     types = get_types(target_paths)
@@ -128,6 +132,7 @@ def get_types_dict(target_paths):
 
     return types_dict
 
+# generate code for setter (SetFromROS2)
 def setter(r, v_type, v_ros):
     if r == 'FVector':
         return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\n\t\t'
@@ -140,6 +145,7 @@ def setter(r, v_type, v_ros):
     else:
         return v_type + ' = data.' + v_ros + ';\n\n\t\t'
 
+# generate code for getter (SetROS2)
 def getter(r, v_type, v_ros):
     if r == 'FVector':
         return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
@@ -154,6 +160,7 @@ def getter(r, v_type, v_ros):
     else:
         return 'data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
+# generate C++ code snippets to be inserted in their respective placeholders in the templates
 def get_types_cpp(target_paths):
     types_dict = get_types_dict(target_paths)
     types_cpp = {}
@@ -213,7 +220,6 @@ ue_path = sys.argv[2]
 Group = os.path.basename(os.path.dirname(ue_path))
 
 types_cpp, set_from_ros2_cpp, set_ros2_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
-#types_cpp, set_from_ros2_cpp, set_ros2_cpp = get_types_cpp([os.path.split(os.path.dirname(ue_path))[0], os.path.split(os.path.dirname(ue_path))[0]])
 
 
 # generate code
@@ -263,7 +269,6 @@ for subdir in ['action','srv','msg']:
                 feedback_set_ros2 = set_ros2_cpp[Group + '/' + info['NameCap'] + '_Feedback']
                 idx = feedback_set_ros2.find('data.')+4
                 info['FeedbackSetROS2'] = feedback_set_ros2[:idx] + '.feedback' + feedback_set_ros2[idx:]
-                # to fill 
 
             os.chdir(current_dir)
     
