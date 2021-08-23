@@ -133,7 +133,7 @@ def get_types_dict(target_paths):
     return types_dict
 
 # generate code for setter (SetFromROS2)
-def setter(r, v_type, v_ros):
+def setter(r, v_type, v_ros, size):
     if r == 'FVector':
         return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\n\t\t'
     elif r == 'FQuat':
@@ -141,12 +141,12 @@ def setter(r, v_type, v_ros):
     elif r == 'FString':
         return v_type + '.AppendChars(data.' + v_ros + '.data, data.' + v_ros + '.size);\n\n\t\t'
     elif 'TArray' in r:
-        return 'for (int i=0; i<' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+        return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
     else:
         return v_type + ' = data.' + v_ros + ';\n\n\t\t'
 
 # generate code for getter (SetROS2)
-def getter(r, v_type, v_ros):
+def getter(r, v_type, v_ros, size):
     if r == 'FVector':
         return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
     elif r == 'FQuat':
@@ -156,7 +156,7 @@ def getter(r, v_type, v_ros):
             + '\n\t\tdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(data.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
             + 'data.' + v_ros + '.size = ' + v_type + '.Len();\n\t\tdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
     elif 'TArray' in r:
-        return 'for (int i=0; i<' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+        return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
     else:
         return 'data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
@@ -181,26 +181,30 @@ def get_types_cpp(target_paths):
                 elif '[' in r and ']' in r:
                     tmp = re.split('\[|\]', r)
                     tmp[1] = tmp[1].replace('<=','')
-                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
-                cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + next(it) + ';\n\n\t'
+                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + '>'
+                if ('unsigned int' in r):
+                    cpp_type += r + ' ' + next(it) + ';\n\n\t'
+                else:
+                    cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + next(it) + ';\n\n\t'
 
             res_ros = get_ros_var_name(v)
             it_ros = iter(res_ros)
             it_type = iter(res)
             for r in it_ros:
+                size = 0
                 r = convert_to_cpp_type(r)
                 if '[]' in r:
                     r = r.replace('[]','')
                     r = 'TArray<' + convert_to_cpp_type(r) + '>'
                 elif '[' in r and ']' in r:
                     tmp = re.split('\[|\]', r)
-                    tmp[1] = tmp[1].replace('<=','')
-                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + ', TFixedAllocator<' + tmp[1] + '>>'
+                    size = tmp[1].replace('<=','')
+                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + '>'
                 v_ros = next(it_ros)
                 next(it_type)
                 v_type = next(it_type)
-                set_from_ros2 += setter(r, v_type, v_ros)
-                set_ros2      += getter(r, v_type, v_ros)
+                set_from_ros2 += setter(r, v_type, v_ros, size)
+                set_ros2      += getter(r, v_type, v_ros, size)
 
         types_cpp[key] = cpp_type
         set_from_ros2_cpp[key] = set_from_ros2
@@ -227,9 +231,11 @@ for subdir in ['action','srv','msg']:
     if os.path.exists(ue_path+'/'+subdir):
         os.chdir(ue_path+'/'+subdir)
         for file in glob.glob('*.'+subdir):
-            print(file)
+            package_name = os.path.split(os.path.split(ue_path)[0])[1]
+            print(package_name + '/' + file)
             
             info = {}
+            info['Filename'] = package_name + '/' + file
             info['Group'] = Group
             info['Name'] = re.sub(r'(?<!^)(?=[A-Z])', '_', os.path.splitext(file)[0]).lower()
             info['NameCap'] = os.path.splitext(file)[0]
