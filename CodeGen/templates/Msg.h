@@ -20,12 +20,12 @@ struct RCLUE_API F{{data.StructName}}
 public:
 	{{data.Types}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} data)
+	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} rosdata)
 	{
     	{{data.SetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& data) const
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& rosdata) const
 	{
     	{{data.SetROS2}}
 	}

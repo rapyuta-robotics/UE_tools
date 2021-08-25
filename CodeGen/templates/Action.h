@@ -23,21 +23,21 @@ public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 	{{data.GoalTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request rosdata)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = data.goal_id.uuid[i];
+			goal_id[i] = rosdata.goal_id.uuid[i];
 		}
 
     	{{data.GoalSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& rosdata) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			data.goal_id.uuid[i] = goal_id[i];
+			rosdata.goal_id.uuid[i] = goal_id[i];
 		}
 
     	{{data.GoalSetROS2}}
@@ -54,18 +54,18 @@ public:
 	int stamp_sec;
 	uint stamp_nanosec;
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response rosdata)
 	{
-    	accepted = data.accepted;
-		stamp_sec = data.stamp.sec;
-		stamp_nanosec = data.stamp.nanosec;
+    	accepted = rosdata.accepted;
+		stamp_sec = rosdata.stamp.sec;
+		stamp_nanosec = rosdata.stamp.nanosec;
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& rosdata) const
 	{
-    	data.accepted = accepted;
-		data.stamp.sec = stamp_sec;
-		data.stamp.nanosec = stamp_nanosec;
+    	rosdata.accepted = accepted;
+		rosdata.stamp.sec = stamp_sec;
+		rosdata.stamp.nanosec = stamp_nanosec;
 	}
 };
 
@@ -77,20 +77,20 @@ struct RCLUE_API F{{data.StructName}}_GetResult_Request
 public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request rosdata)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = data.goal_id.uuid[i];
+			goal_id[i] = rosdata.goal_id.uuid[i];
 		}
 
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request& rosdata) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			data.goal_id.uuid[i] = goal_id[i];
+			rosdata.goal_id.uuid[i] = goal_id[i];
 		}
 	}
 };
@@ -104,15 +104,15 @@ public:
 	int8 status;
 	{{data.ResultTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response rosdata)
 	{
-		status = data.status;
+		status = rosdata.status;
     	{{data.ResultSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& rosdata) const
 	{
-		data.status = status;
+		rosdata.status = status;
     	{{data.ResultSetROS2}}
 	}
 };
@@ -126,21 +126,21 @@ public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 	{{data.FeedbackTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage data)
+	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage rosdata)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = data.goal_id.uuid[i];
+			goal_id[i] = rosdata.goal_id.uuid[i];
 		}
 
     	{{data.FeedbackSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& data) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& rosdata) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			data.goal_id.uuid[i] = goal_id[i];
+			rosdata.goal_id.uuid[i] = goal_id[i];
 		}
 		
     	{{data.FeedbackSetROS2}}

@@ -83,108 +83,149 @@ def check_deprecated(path, sdir, file):
 # generate code for setter (SetFromROS2)
 def setter(r, v_type, v_ros, size):
     if r == 'FVector':
-        return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\n\t\t'
+        return v_type + '.X = rosdata.' + v_ros + '.x;\n\t\t' + v_type + '.Y = rosdata.' + v_ros + '.y;\n\t\t' + v_type + '.Z = rosdata.' + v_ros + '.z;\n\n\t\t'
     elif r == 'FQuat':
-        return v_type + '.X = data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = data.' + v_ros + '.z;\n\t\t' + v_type + '.W = data.' + v_ros + '.w;\n\n\t\t'
+        return v_type + '.X = rosdata.' + v_ros + '.x;\n\t\t' + v_type + '.Y = rosdata.' + v_ros + '.y;\n\t\t' + v_type + '.Z = rosdata.' + v_ros + '.z;\n\t\t' + v_type + '.W = rosdata.' + v_ros + '.w;\n\n\t\t'
     elif r == 'FString':
-        return v_type + '.AppendChars(data.' + v_ros + '.data, data.' + v_ros + '.size);\n\n\t\t'
+        return v_type + '.AppendChars(rosdata.' + v_ros + '.data, rosdata.' + v_ros + '.size);\n\n\t\t'
     elif 'TArray' in r:
         if 'FVector' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros + '.data[i].x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros + '.data[i].y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros + '.data[i].z;\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '[i].X = rosdata.' + v_ros + '[i].x;\n\t\t\t' \
+                    + v_type + '[i].Y = rosdata.' + v_ros + '[i].y;\n\t\t\t' \
+                    + v_type + '[i].Z = rosdata.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < data.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' \
+                        + v_type + '[i].X = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' \
+                        + v_type + '[i].Y = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' \
+                        + v_type + '[i].Z = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < data.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros + '.data[i].x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros + '.data[i].y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros + '.data[i].z;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' \
+                        + v_type + '[i].X = rosdata.' + v_ros + '.data[i].x;\n\t\t\t' \
+                        + v_type + '[i].Y = rosdata.' + v_ros + '.data[i].y;\n\t\t\t' \
+                        + v_type + '[i].Z = rosdata.' + v_ros + '.data[i].z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros + '.data[i].x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros + '.data[i].y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros + '.data[i].z;\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '[i].X = rosdata.' + v_ros + '[i].x;\n\t\t\t' \
+                    + v_type + '[i].Y = rosdata.' + v_ros + '[i].y;\n\t\t\t' \
+                    + v_type + '[i].Z = rosdata.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < data.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t\t' + v_type + '[i].W = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' \
+                        + v_type + '[i].X = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' \
+                        + v_type + '[i].Y = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' \
+                        + v_type + '[i].Z = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t\t' \
+                        + v_type + '[i].W = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w;\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < data.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].X = data.' + v_ros + '.data[i].x;\n\t\t\t' + v_type + '[i].Y = data.' + v_ros + '.data[i].y;\n\t\t\t' + v_type + '[i].Z = data.' + v_ros + '.data[i].z;\n\t\t\t' + v_type + '[i].W = data.' + v_ros + '.data[i].w;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' \
+                        + v_type + '[i].X = rosdata.' + v_ros + '.data[i].x;\n\t\t\t' \
+                        + v_type + '[i].Y = rosdata.' + v_ros + '.data[i].y;\n\t\t\t' \
+                        + v_type + '[i].Z = rosdata.' + v_ros + '.data[i].z;\n\t\t\t' \
+                        + v_type + '[i].W = rosdata.' + v_ros + '.data[i].w;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(data.' + v_ros + '.data[i], data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '[i], rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'TODO - for (int i = 0; i < data.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
+                    return 'TODO - for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
                 else:
-                    return 'TODO - for (int i = 0; i < data.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+                    return 'TODO - for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
         else:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '[i];\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < data.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < data.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = data.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
     else:
-        return v_type + ' = data.' + v_ros + ';\n\n\t\t'
+        return v_type + ' = rosdata.' + v_ros + ';\n\n\t\t'
 
 # generate code for getter (SetROS2)
 def getter(r, v_type, v_ros, size):
     if r == 'FVector':
-        return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
+        return 'rosdata.' + v_ros + '.x = ' + v_type + '.X;\n\t\trosdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\trosdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
     elif r == 'FQuat':
-        return 'data.' + v_ros + '.x = ' + v_type + '.X;\n\t\tdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\tdata.' + v_ros + '.z = ' + v_type + '.Z;\n\t\tdata.' + v_ros + '.w = ' + v_type + '.W;\n\n\t\t'
+        return 'rosdata.' + v_ros + '.x = ' + v_type + '.X;\n\t\trosdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\trosdata.' + v_ros + '.z = ' + v_type + '.Z;\n\t\trosdata.' + v_ros + '.w = ' + v_type + '.W;\n\n\t\t'
     elif r == 'FString':
-        return 'if (data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\tfree(data.' + v_ros + '.data);\n\t\t}' \
-            + '\n\t\tdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(data.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
-            + 'data.' + v_ros + '.size = ' + v_type + '.Len();\n\t\tdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
+        return 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t}' \
+            + '\n\t\trosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
+            + 'rosdata.' + v_ros + '.size = ' + v_type + '.Len();\n\t\trosdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
     elif 'TArray' in r:
         if 'FVector' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t\tdata.' + v_ros + '.data[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t\t' \
+                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\tdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\tdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t\tdata.' + v_ros + '.data[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros_split[0] + '[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
                 else:
-                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
         else:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
                 else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\tdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
     else:
-        return 'data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
+        return 'rosdata.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
 
 # scan msg, srv and action files to find all types present in the given target_paths
@@ -406,7 +447,7 @@ for subdir in ['action','srv','msg']:
             info['Filename'] = package_name + '/' + file
             info['Group'] = Group
             name = os.path.splitext(file)[0]
-            name_lower = re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+            name_lower = re.sub('([a-z0-9])([A-Z])', r'\1_\2', re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
             info['Name'] = name_lower
             info['NameCap'] = name
             # if (name == 'String'):
@@ -426,16 +467,16 @@ for subdir in ['action','srv','msg']:
                 info['ResSetROS2'] = types_cpp[Group + '/' + name + '_Response'][2]
             elif subdir == 'action':
                 info['GoalTypes'] = types_cpp[Group + '/' + name + '_SendGoal'][0]
-                info['GoalSetFromROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][1].replace('data.','data.goal.')
-                info['GoalSetROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][2].replace('data.','data.goal.')
+                info['GoalSetFromROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][1].replace('rosdata.','rosdata.goal.')
+                info['GoalSetROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][2].replace('rosdata.','rosdata.goal.')
                 
                 info['ResultTypes'] = types_cpp[Group + '/' + name + '_GetResult'][0]
-                info['ResultSetFromROS2'] = types_cpp[Group + '/' + name + '_GetResult'][1].replace('data.','data.result.')
-                info['ResultSetROS2'] = types_cpp[Group + '/' + name + '_GetResult'][2].replace('data.','data.result.')
+                info['ResultSetFromROS2'] = types_cpp[Group + '/' + name + '_GetResult'][1].replace('rosdata.','rosdata.result.')
+                info['ResultSetROS2'] = types_cpp[Group + '/' + name + '_GetResult'][2].replace('rosdata.','rosdata.result.')
                 
                 info['FeedbackTypes'] = types_cpp[Group + '/' + name + '_Feedback'][0]
-                info['FeedbackSetFromROS2'] = types_cpp[Group + '/' + name + '_Feedback'][1].replace('data.','data.feedback.')
-                info['FeedbackSetROS2'] = types_cpp[Group + '/' + name + '_Feedback'][2].replace('data.','data.feedback.')
+                info['FeedbackSetFromROS2'] = types_cpp[Group + '/' + name + '_Feedback'][1].replace('rosdata.','rosdata.feedback.')
+                info['FeedbackSetROS2'] = types_cpp[Group + '/' + name + '_Feedback'][2].replace('rosdata.','rosdata.feedback.')
 
             os.chdir(current_dir)
     
