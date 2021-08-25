@@ -265,34 +265,40 @@ def get_types_dict(target_paths):
                         # remove leading and trailing spaces, including new lines '\n'
                         content = [ x.strip() for x in content ]
 
+                        content = [ re.sub(r'<=','',c) for c in content ]
+                        content = [ c for c in content if not c.startswith('#') and c != '' ]
+                        content = [ c.split('#')[0] for c in content ]
+
+                        # remove constants - these will eventually need to be used
+                        content = [ c for c in content if '=' not in c ]
+
                         if not fi.endswith('.action'):
                             # remove comments, empty and separator lines; keep only variable type and name
-                            content = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' and c != '---' ]
-                            content = [ [ c[0], re.sub(r'\=.*', '', c[1]) ] for c in content ]
+                            content = [ c.split()[0:2] for c in content if  c != '---' ]
+                            #content = [ c for c in content if '=' not in c[1] ] # ignore constants
                             types_dict[t] = content
                         else:
                             # remove comments and empty lines; keep only variable type and name
-                            content = [ c.split()[0:2] for c in content if not c.startswith('#') and c != '' ]
-                            #content = [ [ c[0], re.sub(r'\=.*', '', c[1]) ] for c in content ]
+                            content = [ c.split()[0:2] for c in content ]
                             counter = 0
                             for c in content:
                                 if not c == ['---']:
-                                    c = [ c[0], re.sub(r'\=.*', '', c[1]) ]
-                                    if counter == 0:
-                                        if (t+'_SendGoal') in types_dict and c not in types_dict[t+'_SendGoal']:
-                                            types_dict[t+'_SendGoal'].append(c)
-                                        else:
-                                            types_dict[t+'_SendGoal'] = [c]
-                                    elif counter == 1:
-                                        if (t+'_GetResult') in types_dict and c not in types_dict[t+'_GetResult']:
-                                            types_dict[t+'_GetResult'].append(c)
-                                        else:
-                                            types_dict[t+'_GetResult'] = [c]
-                                    elif counter == 2:
-                                        if (t+'_Feedback') in types_dict and c not in types_dict[t+'_Feedback']:
-                                            types_dict[t+'_Feedback'].append(c)
-                                        else:
-                                            types_dict[t+'_Feedback'] = [c]
+                                    if '=' not in c[1]:
+                                        if counter == 0:
+                                            if (t+'_SendGoal') in types_dict and c not in types_dict[t+'_SendGoal']:
+                                                types_dict[t+'_SendGoal'].append(c)
+                                            else:
+                                                types_dict[t+'_SendGoal'] = [c]
+                                        elif counter == 1:
+                                            if (t+'_GetResult') in types_dict and c not in types_dict[t+'_GetResult']:
+                                                types_dict[t+'_GetResult'].append(c)
+                                            else:
+                                                types_dict[t+'_GetResult'] = [c]
+                                        elif counter == 2:
+                                            if (t+'_Feedback') in types_dict and c not in types_dict[t+'_Feedback']:
+                                                types_dict[t+'_Feedback'].append(c)
+                                            else:
+                                                types_dict[t+'_Feedback'] = [c]
                                 else:
                                     counter += 1
 
