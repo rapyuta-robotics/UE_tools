@@ -131,14 +131,14 @@ def setter(r, v_type, v_ros, size):
                         + v_type + '[i].W = rosdata.' + v_ros + '.data[i].w;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '[i], rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '.data, rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'TODO - for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros_split[0] + '.data, rosdata.' + v_ros_split[0] + '.size);\n\t\t}\n\n\t\t'
                 else:
-                    return 'TODO - for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '.data,rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
         else:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '[i];\n\t\t}\n\n\t\t'
@@ -206,14 +206,32 @@ def getter(r, v_type, v_ros, size):
                     + 'rosdata.' + v_ros + '.data[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'TODO - for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + 'if (rosdata.' + v_ros + '[i].data != nullptr)\n\t\t\t{' \
+                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '[i].data);\n\t\t\t}\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'memcpy(rosdata.' + v_ros + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
             else:
                 # problem: need to identify which of the variables in the chain is the vector
                 if '.' in v_ros:
                     v_ros_split = v_ros.split('.')
-                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros_split[0] + '[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                        + 'if (rosdata.' + v_ros_split[0] + '[i].data != nullptr)\n\t\t\t{' \
+                            + '\n\t\t\t\tfree(rosdata.' + v_ros_split[0] + '[i].data);\n\t\t\t}\n\t\t\t' \
+                        + 'rosdata.' + v_ros_split[0] + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                        + 'memcpy(rosdata.' + v_ros_split[0] + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                        + 'rosdata.' + v_ros_split[0] + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
+                        + 'rosdata.' + v_ros_split[0] + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
                 else:
-                    return 'TODO - for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                        + 'if (rosdata.' + v_ros + '[i].data != nullptr)\n\t\t\t{' \
+                            + '\n\t\t\t\tfree(rosdata.' + v_ros + '[i].data);\n\t\t\t}\n\t\t\t' \
+                        + 'rosdata.' + v_ros + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                        + 'memcpy(rosdata.' + v_ros + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                        + 'rosdata.' + v_ros + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
+                        + 'rosdata.' + v_ros + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
         else:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
