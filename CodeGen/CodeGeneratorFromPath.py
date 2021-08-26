@@ -7,17 +7,17 @@ import re
 import pandas as pd
 
 # generate variable name for C++
-def get_var_name(curval = {}, is_array = False):
+def get_var_name(curval = {}, is_dynamic_array = False):
     if len(curval) == 2:
         vartype = curval[0]
-        if '[]' not in curval[0] and is_array:
+        if '[]' not in curval[0] and is_dynamic_array:
             vartype += '[]'
         return [str(vartype), str(curval[1])]
     elif len(curval) == 3:
         res = []
         final = []
         for v in curval[2]:
-            res = get_var_name(v, is_array)
+            res = get_var_name(v, is_dynamic_array)
             it = iter(res)
             for r in it:
                 final.append(r)
@@ -28,21 +28,27 @@ def get_var_name(curval = {}, is_array = False):
     return '',''
 
 # generate msg variable access for ROS msg - should this be merged with the above? or is this going to diverge? at the moment only the separator symbol is different!
-def get_ros_var_name(curval = {}, is_array = False):
+def get_ros_var_name(curval = {}, is_dynamic_array = False):
     if len(curval) == 2:
         vartype = curval[0]
-        if '[]' not in curval[0] and is_array:
+        varname = curval[1]
+        if '[]' not in curval[0] and is_dynamic_array:
             vartype += '[]'
-        return [str(vartype), str(curval[1])]
+        if '[]' in curval[0]:
+            varname += '.data[i]'
+        return [str(vartype), str(varname)]
     elif len(curval) == 3:
         res = []
         final = []
         for v in curval[2]:
-            res = get_ros_var_name(v, is_array)
+            res = get_ros_var_name(v, is_dynamic_array)
             it = iter(res)
             for r in it:
                 final.append(r)
-                final.append(curval[1] + '.' + next(it)) # this won't work - need to add index access to it!
+                if '[]' in curval[0]:
+                    final.append(curval[1] + '.data[i].' + next(it))
+                else:
+                    final.append(curval[1] + '.' + next(it))
         return final
     else:
         print('ERROR with ' + str(curval) + ' (get_ros_var_name)')
@@ -96,18 +102,12 @@ def setter(r, v_type, v_ros, size):
                     + v_type + '[i].Y = rosdata.' + v_ros + '[i].y;\n\t\t\t' \
                     + v_type + '[i].Z = rosdata.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' \
-                        + v_type + '[i].X = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' \
-                        + v_type + '[i].Y = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' \
-                        + v_type + '[i].Z = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' \
-                        + v_type + '[i].X = rosdata.' + v_ros + '.data[i].x;\n\t\t\t' \
-                        + v_type + '[i].Y = rosdata.' + v_ros + '.data[i].y;\n\t\t\t' \
-                        + v_type + '[i].Z = rosdata.' + v_ros + '.data[i].z;\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return 'for (int i = 0; i < rosdata.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '[i].X = rosdata.' + v_ros + '.x;\n\t\t\t' \
+                    + v_type + '[i].Y = rosdata.' + v_ros + '.y;\n\t\t\t' \
+                    + v_type + '[i].Z = rosdata.' + v_ros + '.z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
@@ -115,40 +115,27 @@ def setter(r, v_type, v_ros, size):
                     + v_type + '[i].Y = rosdata.' + v_ros + '[i].y;\n\t\t\t' \
                     + v_type + '[i].Z = rosdata.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' \
-                        + v_type + '[i].X = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x;\n\t\t\t' \
-                        + v_type + '[i].Y = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y;\n\t\t\t' \
-                        + v_type + '[i].Z = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z;\n\t\t\t' \
-                        + v_type + '[i].W = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w;\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' \
-                        + v_type + '[i].X = rosdata.' + v_ros + '.data[i].x;\n\t\t\t' \
-                        + v_type + '[i].Y = rosdata.' + v_ros + '.data[i].y;\n\t\t\t' \
-                        + v_type + '[i].Z = rosdata.' + v_ros + '.data[i].z;\n\t\t\t' \
-                        + v_type + '[i].W = rosdata.' + v_ros + '.data[i].w;\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return 'for (int i = 0; i < rosdata.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '[i].X = rosdata.' + v_ros + '.x;\n\t\t\t' \
+                    + v_type + '[i].Y = rosdata.' + v_ros + '.y;\n\t\t\t' \
+                    + v_type + '[i].Z = rosdata.' + v_ros + '.z;\n\t\t\t' \
+                    + v_type + '[i].W = rosdata.' + v_ros + '.w;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '.data, rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros_split[0] + '.data, rosdata.' + v_ros_split[0] + '.size);\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '.data,rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return 'for (int i = 0; i < rosdata.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(rosdata.' + v_ros + '.data,rosdata.' + v_ros + '.size);\n\t\t}\n\n\t\t'
         else:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '[i];\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < rosdata.' + v_ros_split[0] + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ';\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < rosdata.' + v_ros + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + '.data[i];\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return 'for (int i = 0; i < rosdata.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = rosdata.' + v_ros + ';\n\t\t}\n\n\t\t'
     else:
         return v_type + ' = rosdata.' + v_ros + ';\n\n\t\t'
 
@@ -170,18 +157,11 @@ def getter(r, v_type, v_ros, size):
                     + 'rosdata.' + v_ros + '[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
                     + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
@@ -190,58 +170,36 @@ def getter(r, v_type, v_ros, size):
                     + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t\t' \
                     + 'rosdata.' + v_ros + '[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.z = ' + v_type + '[i].Z;\n\t\t\t' \
-                    + 'rosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + '.w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].z = ' + v_type + '[i].Z;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.data[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.x = ' + v_type + '[i].X;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.z = ' + v_type + '[i].Z;\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + 'if (rosdata.' + v_ros + '[i].data != nullptr)\n\t\t\t{' \
-                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '[i].data);\n\t\t\t}\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                    + 'memcpy(rosdata.' + v_ros + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
+                    + 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t\t{' \
+                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t\t}\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'memcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.size = ' + v_type + '[i].Len();\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                        + 'if (rosdata.' + v_ros_split[0] + '[i].data != nullptr)\n\t\t\t{' \
-                            + '\n\t\t\t\tfree(rosdata.' + v_ros_split[0] + '[i].data);\n\t\t\t}\n\t\t\t' \
-                        + 'rosdata.' + v_ros_split[0] + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                        + 'memcpy(rosdata.' + v_ros_split[0] + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                        + 'rosdata.' + v_ros_split[0] + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
-                        + 'rosdata.' + v_ros_split[0] + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                        + 'if (rosdata.' + v_ros + '[i].data != nullptr)\n\t\t\t{' \
-                            + '\n\t\t\t\tfree(rosdata.' + v_ros + '[i].data);\n\t\t\t}\n\t\t\t' \
-                        + 'rosdata.' + v_ros + '[i].data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                        + 'memcpy(rosdata.' + v_ros + '[i].data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                        + 'rosdata.' + v_ros + '[i].size = ' + v_type + '[i].Len();\n\t\t\t' \
-                        + 'rosdata.' + v_ros + '[i].capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
+                    + 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t\t{' \
+                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t\t}\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'memcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.size = ' + v_type + '[i].Len();\n\t\t\t' \
+                    + 'rosdata.' + v_ros + '.capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
         else:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
             else:
-                # problem: need to identify which of the variables in the chain is the vector
-                if '.' in v_ros:
-                    v_ros_split = v_ros.split('.')
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros_split[0] + '.data[i].' + v_ros_split[1] + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
-                else:
-                    return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '.data[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                # need to identify multidimensional arrays - need some sort of recursion with splits
+                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
     else:
         return 'rosdata.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
@@ -392,10 +350,10 @@ def get_types_cpp(target_paths):
         set_ros2 = ''
         set_from_ros2 = ''
         for v in value:
-            is_array = False
+            is_dynamic_array = False
             if '[]' in v[0]:
-                is_array = True
-            res = get_var_name(v, is_array)
+                is_dynamic_array = True
+            res = get_var_name(v, is_dynamic_array)
             it = iter(res)
             for r in it:
                 r = convert_to_cpp_type(r)
@@ -411,7 +369,7 @@ def get_types_cpp(target_paths):
                 else:
                     cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + next(it) + ';\n\n\t'
 
-            res_ros = get_ros_var_name(v, is_array)
+            res_ros = get_ros_var_name(v, is_dynamic_array)
             it_ros = iter(res_ros)
             it_type = iter(res)
             for r in it_ros:
