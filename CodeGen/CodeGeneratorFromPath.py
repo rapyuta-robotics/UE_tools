@@ -10,14 +10,17 @@ import pandas as pd
 def get_var_name(curval = {}, is_dynamic_array = False):
     if len(curval) == 2:
         vartype = curval[0]
-        if '[]' not in curval[0] and is_dynamic_array:
+        if '[' not in curval[0] and ']' not in curval[0] and is_dynamic_array:
             vartype += '[]'
         return [str(vartype), str(curval[1])]
     elif len(curval) == 3:
         res = []
         final = []
         for v in curval[2]:
-            res = get_var_name(v, is_dynamic_array)
+            is_dynamic_array_var = is_dynamic_array
+            if '[]' in v[0]:
+                is_dynamic_array_var = True
+            res = get_var_name(v, is_dynamic_array_var)
             it = iter(res)
             for r in it:
                 final.append(r)
@@ -41,7 +44,10 @@ def get_ros_var_name(curval = {}, is_dynamic_array = False):
         res = []
         final = []
         for v in curval[2]:
-            res = get_ros_var_name(v, is_dynamic_array)
+            is_dynamic_array_var = is_dynamic_array
+            if '[]' in v[0]:
+                is_dynamic_array_var = True
+            res = get_ros_var_name(v, is_dynamic_array_var)
             it = iter(res)
             for r in it:
                 final.append(r)
@@ -353,26 +359,13 @@ def get_types_cpp(target_paths):
             is_dynamic_array = False
             if '[]' in v[0]:
                 is_dynamic_array = True
-            res = get_var_name(v, is_dynamic_array)
-            it = iter(res)
-            for r in it:
-                r = convert_to_cpp_type(r)
-                if '[]' in r:
-                    r = r.replace('[]','')
-                    r = 'TArray<' + convert_to_cpp_type(r) + '>'
-                elif '[' in r and ']' in r:
-                    tmp = re.split('\[|\]', r)
-                    tmp[1] = tmp[1].replace('<=','')
-                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + '>'
-                if ('unsigned int' in r or 'double' in r or 'int8' in r or 'uint16' in r):
-                    cpp_type += r + ' ' + next(it) + ';\n\n\t'
-                else:
-                    cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + next(it) + ';\n\n\t'
 
+            res = get_var_name(v, is_dynamic_array)
             res_ros = get_ros_var_name(v, is_dynamic_array)
-            it_ros = iter(res_ros)
+
             it_type = iter(res)
-            for r in it_ros:
+            it_ros = iter(res_ros)
+            for r in it_type:
                 size = 0
                 r = convert_to_cpp_type(r)
                 if '[]' in r:
@@ -380,11 +373,16 @@ def get_types_cpp(target_paths):
                     r = 'TArray<' + convert_to_cpp_type(r) + '>'
                 elif '[' in r and ']' in r:
                     tmp = re.split('\[|\]', r)
+                    tmp[1] = tmp[1].replace('<=','')
                     size = tmp[1].replace('<=','')
                     r = 'TArray<' + convert_to_cpp_type(tmp[0]) + '>'
-                v_ros = next(it_ros)
-                next(it_type)
+                next(it_ros)
                 v_type = next(it_type)
+                v_ros = next(it_ros)
+                if ('unsigned int' in r or 'double' in r or 'int8' in r or 'uint16' in r):
+                    cpp_type += r + ' ' + v_type + ';\n\n\t'
+                else:
+                    cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + v_type + ';\n\n\t'
                 set_from_ros2 += setter(r, v_type, v_ros, int(size))
                 set_ros2      += getter(r, v_type, v_ros, int(size))
 
@@ -423,12 +421,10 @@ for subdir in ['action','srv','msg']:
             info['Filename'] = package_name + '/' + file
             info['Group'] = Group
             name = os.path.splitext(file)[0]
+            # PascalCase to snake_case; correctly handles acronyms: TLA -> tla instead of t_l_a
             name_lower = re.sub('([a-z0-9])([A-Z])', r'\1_\2', re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
             info['Name'] = name_lower
             info['NameCap'] = name
-            # if (name == 'String'):
-            #     info['Name'] = 'rosstring'
-            #     info['NameCap'] = 'ROSString'
             info['StructName'] = 'ROS' + info['NameCap']
             if subdir == 'msg':
                 info['Types'] = types_cpp[Group + '/' + name][0]
