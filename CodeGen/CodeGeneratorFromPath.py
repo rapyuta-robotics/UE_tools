@@ -145,67 +145,117 @@ def setter(r, v_type, v_ros, size):
     else:
         return v_type + ' = rosdata.' + v_ros + ';\n\n\t\t'
 
+def cpp2ros_vector(v_ros, v_type, comp, is_array = False, is_fixed_size = False):
+    iterator = ''
+    iterator_ros = ''
+    component = ''
+    if comp != '':
+        component = '.' + comp
+    if is_array and is_fixed_size:
+        iterator_ros = '[i]'
+    if is_array:
+        iterator = '[i]'
+    return 'rosdata.' + v_ros + iterator_ros + component.lower() + ' = ' + v_type + iterator + component.upper() + ';'
+
+def free_and_malloc(v_ros, v_type, type):
+    alloc_type = 'decltype(*rosdata.' + v_ros + '.data)'
+    alloc_type_cast = 'decltype(rosdata.' + v_ros + '.data)'
+    size = '(' + v_type + '.Num())'
+    if type == 'FString':
+        size = '(' + v_type + '.Len() + 1)'
+    elif type == 'FVector':
+        size = '(' + v_type + '.Num() * 3)'
+    elif type == 'FQuat':
+        size = '(' + v_type + '.Num() * 4)'
+    return 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t' \
+            + 'free(rosdata.' + v_ros + '.data);\n\t\t}\n\t\t' \
+            + 'rosdata.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
+
 # generate code for getter (SetROS2)
 def getter(r, v_type, v_ros, size):
     if r == 'FVector':
-        return 'rosdata.' + v_ros + '.x = ' + v_type + '.X;\n\t\trosdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\trosdata.' + v_ros + '.z = ' + v_type + '.Z;\n\n\t\t'
+        return cpp2ros_vector(v_ros, v_type, 'x') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_type, 'z') + '\n\n\t\t'
     elif r == 'FQuat':
-        return 'rosdata.' + v_ros + '.x = ' + v_type + '.X;\n\t\trosdata.' + v_ros + '.y = ' + v_type + '.Y;\n\t\trosdata.' + v_ros + '.z = ' + v_type + '.Z;\n\t\trosdata.' + v_ros + '.w = ' + v_type + '.W;\n\n\t\t'
+        return cpp2ros_vector(v_ros, v_type, 'x') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_type, 'z') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_type, 'w') + '\n\n\t\t'
     elif r == 'FString':
-        return 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t}' \
-            + '\n\t\trosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '.Len()+1)*sizeof(char));\n\t\tmemcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
-            + 'rosdata.' + v_ros + '.size = ' + v_type + '.Len();\n\t\trosdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
+        return free_and_malloc(v_ros, v_type, r) \
+            + 'memcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '), (' + v_type + '.Len()+1)*sizeof(char));\n\t\t' \
+            + 'rosdata.' + v_ros + '.size = ' + v_type + '.Len();\n\t\t' \
+            + 'rosdata.' + v_ros + '.capacity = ' + v_type + '.Len() + 1;\n\n\t\t'
     elif 'TArray' in r:
+        for_loop_fixed = 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t'
+        for_loop_dynamic = 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t'
         if 'FVector' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                return for_loop_fixed \
+                    + cpp2ros_vector(v_ros, v_type, 'x', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'y', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'z', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
-                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.z = ' + v_type + '[i].Z;\n\t\t}\n\n\t\t'
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return free_and_malloc(v_ros_size, v_type, 'FVector') + '\n\t\t' \
+                    + for_loop_dynamic \
+                    + cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].z = ' + v_type + '[i].Z;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '[i].w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                return for_loop_fixed \
+                    + cpp2ros_vector(v_ros, v_type, 'x', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'y', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'z', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'w', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
-                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.x = ' + v_type + '[i].X;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.y = ' + v_type + '[i].Y;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.z = ' + v_type + '[i].Z;\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.w = ' + v_type + '[i].W;\n\t\t}\n\n\t\t'
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return free_and_malloc(v_ros_size, v_type, 'FQuat') + '\n\t\t' \
+                    + for_loop_dynamic \
+                    + cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_type, 'w', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t\t{' \
-                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t\t}\n\t\t\t' \
+                return for_loop_fixed \
+                    + 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t\t{\n\t\t\t\t' \
+                    + 'free(rosdata.' + v_ros + '.data);\n\t\t\t}\n\t\t\t' \
                     + 'rosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
                     + 'memcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
                     + 'rosdata.' + v_ros + '.size = ' + v_type + '[i].Len();\n\t\t\t' \
                     + 'rosdata.' + v_ros + '.capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
-                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t' \
-                    + 'if (rosdata.' + v_ros + '.data != nullptr)\n\t\t\t{' \
-                        + '\n\t\t\t\tfree(rosdata.' + v_ros + '.data);\n\t\t\t}\n\t\t\t' \
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                return for_loop_dynamic \
+                    + 'if (rosdata.' + v_ros_size + '.data != nullptr)\n\t\t\t{\n\t\t\t\t' \
+                    + 'free(rosdata.' + v_ros_size + '.data);\n\t\t\t}\n\t\t\t' \
                     + 'rosdata.' + v_ros + '.data = (char*)malloc((' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
                     + 'memcpy(rosdata.' + v_ros + '.data, TCHAR_TO_ANSI(*' + v_type + '[i]), (' + v_type + '[i].Len()+1)*sizeof(char));\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.size = ' + v_type + '[i].Len();\n\t\t\t' \
-                    + 'rosdata.' + v_ros + '.capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
+                    + 'rosdata.' + v_ros_size + '.size = ' + v_type + '[i].Len();\n\t\t\t' \
+                    + 'rosdata.' + v_ros_size + '.capacity = ' + v_type + '[i].Len() + 1;\n\t\t}\n\n\t\t'
         else:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\trosdata.' + v_ros + '[i] = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                return for_loop_fixed \
+                    + cpp2ros_vector(v_ros, v_type, '', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
-                return 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\trosdata.' + v_ros + ' = ' + v_type + '[i];\n\t\t}\n\n\t\t'
+                v_ros_size = v_ros.split('.data[i]',1)[0]
+                cpp_base_type = r.split('>',1)[0].split('TArray<',1)[1]
+                return free_and_malloc(v_ros_size, v_type, cpp_base_type) + '\n\t\t' \
+                    + for_loop_dynamic \
+                    + cpp2ros_vector(v_ros, v_type, '', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
+                    + 'rosdata.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
     else:
         return 'rosdata.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
 
