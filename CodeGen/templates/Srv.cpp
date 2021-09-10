@@ -20,7 +20,7 @@ void UROS2{{data.NameCap}}Srv::Fini()
     {{data.Group}}__srv__{{data.NameCap}}_Response__fini(&{{data.NameCap}}_res);
 }
 
-void UROS2{{data.NameCap}}Srv::SetRequest(const F{{data.StructName}}_Request Request)
+void UROS2{{data.NameCap}}Srv::SetRequest(const F{{data.StructName}}_Request& Request)
 {
     Request.SetROS2({{data.NameCap}}_req);
 }
@@ -30,7 +30,7 @@ void UROS2{{data.NameCap}}Srv::GetRequest(F{{data.StructName}}_Request& Request)
     Request.SetFromROS2({{data.NameCap}}_req);
 }
 
-void UROS2{{data.NameCap}}Srv::SetResponse(const F{{data.StructName}}_Response Response)
+void UROS2{{data.NameCap}}Srv::SetResponse(const F{{data.StructName}}_Response& Response)
 {
     Response.SetROS2({{data.NameCap}}_res);
 }

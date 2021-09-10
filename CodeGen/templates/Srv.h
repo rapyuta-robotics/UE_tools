@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include <CoreMinimal.h>
 
 #include "Srvs/ROS2GenericSrv.h"
 #include "rclcUtilities.h"
@@ -20,12 +20,12 @@ struct RCLUE_API F{{data.StructName}}_Request
 public:
 	{{data.ReqTypes}}
 
-	void SetFromROS2({{data.Group}}__srv__{{data.NameCap}}_Request rosdata)
+	void SetFromROS2(const {{data.Group}}__srv__{{data.NameCap}}_Request& in_ros_data)
 	{
     	{{data.ReqSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Request& rosdata) const
+	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Request& out_ros_data) const
 	{
     	{{data.ReqSetROS2}}
 	}
@@ -39,12 +39,12 @@ struct RCLUE_API F{{data.StructName}}_Response
 public:
 	{{data.ResTypes}}
 
-	void SetFromROS2({{data.Group}}__srv__{{data.NameCap}}_Response rosdata)
+	void SetFromROS2(const {{data.Group}}__srv__{{data.NameCap}}_Response& in_ros_data)
 	{
     	{{data.ResSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Response& rosdata) const
+	void SetROS2({{data.Group}}__srv__{{data.NameCap}}_Response& out_ros_data) const
 	{
     	{{data.ResSetROS2}}
 	}
@@ -66,7 +66,7 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetRequest(const F{{data.StructName}}_Request Request);
+	void SetRequest(const F{{data.StructName}}_Request& Request);
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
@@ -74,7 +74,7 @@ public:
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void SetResponse(const F{{data.StructName}}_Response Response);
+	void SetResponse(const F{{data.StructName}}_Response& Response);
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include <CoreMinimal.h>
 
 #include "unique_identifier_msgs/msg/uuid.h"
 #include "{{data.Group}}/action/{{data.Name}}.h"
@@ -23,21 +23,21 @@ public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 	{{data.GoalTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request rosdata)
+	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = rosdata.goal_id.uuid[i];
+			goal_id[i] = in_ros_data.goal_id.uuid[i];
 		}
 
     	{{data.GoalSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& rosdata) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& out_ros_data) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			rosdata.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = goal_id[i];
 		}
 
     	{{data.GoalSetROS2}}
@@ -54,18 +54,18 @@ public:
 	int stamp_sec;
 	uint stamp_nanosec;
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response rosdata)
+	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& in_ros_data)
 	{
-    	accepted = rosdata.accepted;
-		stamp_sec = rosdata.stamp.sec;
-		stamp_nanosec = rosdata.stamp.nanosec;
+    	accepted = in_ros_data.accepted;
+		stamp_sec = in_ros_data.stamp.sec;
+		stamp_nanosec = in_ros_data.stamp.nanosec;
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& rosdata) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& out_ros_data) const
 	{
-    	rosdata.accepted = accepted;
-		rosdata.stamp.sec = stamp_sec;
-		rosdata.stamp.nanosec = stamp_nanosec;
+    	out_ros_data.accepted = accepted;
+		out_ros_data.stamp.sec = stamp_sec;
+		out_ros_data.stamp.nanosec = stamp_nanosec;
 	}
 };
 
@@ -77,20 +77,20 @@ struct RCLUE_API F{{data.StructName}}_GetResult_Request
 public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request rosdata)
+	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = rosdata.goal_id.uuid[i];
+			goal_id[i] = in_ros_data.goal_id.uuid[i];
 		}
 
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request& rosdata) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Request& out_ros_data) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			rosdata.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = goal_id[i];
 		}
 	}
 };
@@ -104,15 +104,15 @@ public:
 	int8 status;
 	{{data.ResultTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response rosdata)
+	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Response& in_ros_data)
 	{
-		status = rosdata.status;
+		status = in_ros_data.status;
     	{{data.ResultSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& rosdata) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& out_ros_data) const
 	{
-		rosdata.status = status;
+		out_ros_data.status = status;
     	{{data.ResultSetROS2}}
 	}
 };
@@ -126,21 +126,21 @@ public:
   	TArray<uint, TFixedAllocator<16>> goal_id;
 	{{data.FeedbackTypes}}
 
-	void SetFromROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage rosdata)
+	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = rosdata.goal_id.uuid[i];
+			goal_id[i] = in_ros_data.goal_id.uuid[i];
 		}
 
     	{{data.FeedbackSetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& rosdata) const
+	void SetROS2({{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& out_ros_data) const
 	{
 		for (int i=0; i<16; i++)
 		{
-			rosdata.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = goal_id[i];
 		}
 		
     	{{data.FeedbackSetROS2}}
@@ -160,25 +160,25 @@ public:
 	virtual const rosidl_action_type_support_t* GetTypeSupport() const override;
 
   	UFUNCTION(BlueprintCallable)
-	void SetGoalRequest(const F{{data.StructName}}_SendGoal_Request Goal);
+	void SetGoalRequest(const F{{data.StructName}}_SendGoal_Request& Goal);
 
   	UFUNCTION(BlueprintCallable)
 	void GetGoalRequest(F{{data.StructName}}_SendGoal_Request& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalResponse(const F{{data.StructName}}_SendGoal_Response Goal);
+	void SetGoalResponse(const F{{data.StructName}}_SendGoal_Response& Goal);
 
   	UFUNCTION(BlueprintCallable)
 	void GetGoalResponse(F{{data.StructName}}_SendGoal_Response& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultRequest(const F{{data.StructName}}_GetResult_Request Result);
+	void SetResultRequest(const F{{data.StructName}}_GetResult_Request& Result);
 
   	UFUNCTION(BlueprintCallable)
 	void GetResultRequest(F{{data.StructName}}_GetResult_Request& Result) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultResponse(const F{{data.StructName}}_GetResult_Response Result);
+	void SetResultResponse(const F{{data.StructName}}_GetResult_Response& Result);
 
   	UFUNCTION(BlueprintCallable)
 	void GetResultResponse(F{{data.StructName}}_GetResult_Response& Result) const;
@@ -186,7 +186,7 @@ public:
 
 
   	UFUNCTION(BlueprintCallable)
-	void SetFeedback(const F{{data.StructName}}_FeedbackMessage Feedback);
+	void SetFeedback(const F{{data.StructName}}_FeedbackMessage& Feedback);
 
   	UFUNCTION(BlueprintCallable)
 	void GetFeedback(F{{data.StructName}}_FeedbackMessage& Feedback) const;

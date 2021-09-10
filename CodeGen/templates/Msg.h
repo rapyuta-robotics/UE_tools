@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include <CoreMinimal.h>
 
 #include "{{data.Group}}/msg/{{data.Name}}.h"
 
@@ -20,12 +20,12 @@ struct RCLUE_API F{{data.StructName}}
 public:
 	{{data.Types}}
 
-	void SetFromROS2({{data.Group}}__msg__{{data.NameCap}} rosdata)
+	void SetFromROS2(const {{data.Group}}__msg__{{data.NameCap}}& in_ros_data)
 	{
     	{{data.SetFromROS2}}
 	}
 
-	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& rosdata) const
+	void SetROS2({{data.Group}}__msg__{{data.NameCap}}& out_ros_data) const
 	{
     	{{data.SetROS2}}
 	}
@@ -43,7 +43,7 @@ public:
 	virtual const rosidl_message_type_support_t* GetTypeSupport() const override;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetMsg(const F{{data.StructName}} Input);
+	void SetMsg(const F{{data.StructName}}& Input);
 	
   	UFUNCTION(BlueprintCallable)
 	void GetMsg(F{{data.StructName}}& Output) const;

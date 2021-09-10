@@ -28,7 +28,7 @@ void UROS2{{data.NameCap}}Action::Fini()
     Super::Fini();
 }
 
-void UROS2{{data.NameCap}}Action::SetGoalRequest(const F{{data.StructName}}_SendGoal_Request Goal)
+void UROS2{{data.NameCap}}Action::SetGoalRequest(const F{{data.StructName}}_SendGoal_Request& Goal)
 {
     Goal.SetROS2({{data.NameCap}}_goal_request);
 }
@@ -38,7 +38,7 @@ void UROS2{{data.NameCap}}Action::GetGoalRequest(F{{data.StructName}}_SendGoal_R
     Goal.SetFromROS2({{data.NameCap}}_goal_request);
 }
 
-void UROS2{{data.NameCap}}Action::SetGoalResponse(const F{{data.StructName}}_SendGoal_Response Goal)
+void UROS2{{data.NameCap}}Action::SetGoalResponse(const F{{data.StructName}}_SendGoal_Response& Goal)
 {
     Goal.SetROS2({{data.NameCap}}_goal_response);
 }
@@ -48,7 +48,7 @@ void UROS2{{data.NameCap}}Action::GetGoalResponse(F{{data.StructName}}_SendGoal_
     Goal.SetFromROS2({{data.NameCap}}_goal_response);
 }
 
-void UROS2{{data.NameCap}}Action::SetResultRequest(const F{{data.StructName}}_GetResult_Request Result)
+void UROS2{{data.NameCap}}Action::SetResultRequest(const F{{data.StructName}}_GetResult_Request& Result)
 {
     Result.SetROS2({{data.NameCap}}_result_request);
 }
@@ -58,7 +58,7 @@ void UROS2{{data.NameCap}}Action::GetResultRequest(F{{data.StructName}}_GetResul
     Result.SetFromROS2({{data.NameCap}}_result_request);
 }
 
-void UROS2{{data.NameCap}}Action::SetResultResponse(const F{{data.StructName}}_GetResult_Response Result)
+void UROS2{{data.NameCap}}Action::SetResultResponse(const F{{data.StructName}}_GetResult_Response& Result)
 {
     Result.SetROS2({{data.NameCap}}_result_response);
 }
@@ -69,7 +69,7 @@ void UROS2{{data.NameCap}}Action::GetResultResponse(F{{data.StructName}}_GetResu
 }
 
 
-void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}}_FeedbackMessage Feedback)
+void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}}_FeedbackMessage& Feedback)
 {
     Feedback.SetROS2({{data.NameCap}}_feedback_message);
 }
