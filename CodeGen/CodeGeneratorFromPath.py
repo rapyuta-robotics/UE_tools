@@ -243,15 +243,17 @@ def getter(r, v_type, v_ros, size):
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return for_loop_dynamic \
-                    + '{\n\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
-                    + 'if (out_ros_data.' + v_ros_size + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
-                    + 'free(out_ros_data.' + v_ros_size + '.data);\n\t\t\t\t}\n\t\t\t\t' \
+                return free_and_malloc(v_ros_size.split('[i]',1)[0], v_type, 'Pointer') \
+                    + for_loop_dynamic \
+                    + '{\n\t\t\t\t' \
+                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\t\t' \
+                    + 'int32 strLength = strUtf8.Length();\n\t\t\t\t' \
+                    + 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
+                    + 'free(out_ros_data.' + v_ros + '.data);\n\t\t\t\t}\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.data = (char*)malloc((strLength+1)*sizeof(char));\n\t\t\t\t' \
                     + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = strLength;\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = strLength + 1;\n\t\t\t}\n\t\t' \
+                    + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
+                    + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t}\n\t\t' \
                     + '}\n\n\t\t'
         else:
             if size > 0:
@@ -449,6 +451,7 @@ def get_types_cpp(target_paths):
         types_cpp[key] = [cpp_type, set_from_ros2, set_ros2]
 
     # for key, value in types_cpp.items():
+    #     print(str(key) + ' -> ' + str(value[2]))
     #     print(str(key) + ' -> ' + str(value[0]))
 
     return types_cpp
