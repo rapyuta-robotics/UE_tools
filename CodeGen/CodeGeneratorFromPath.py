@@ -30,7 +30,7 @@ def get_var_name(curval = {}, is_dynamic_array = False):
         print('ERROR with ' + str(curval) + ' (get_var_name)')
     return '',''
 
-# generate msg variable access for ROS msg - should this be merged with the above? or is this going to diverge? at the moment only the separator symbol is different!
+# generate msg variable access for ROS msg
 def get_ros_var_name(curval = {}, is_dynamic_array = False):
     if len(curval) == 2:
         vartype = curval[0]
@@ -171,8 +171,8 @@ def free_and_malloc(v_ros, v_type, type):
             + 'free(out_ros_data.' + v_ros + '.data);\n\t\t}\n\t\t' \
             + 'out_ros_data.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
 
-# generate code for getter (SetROS2)
-def getter(r, v_type, v_ros, size):
+# generate code for getterAoS - Array-of-Structures (SetROS2)
+def getterAoS(r, v_type, v_ros, size):
     if r == 'FVector':
         return cpp2ros_vector(v_ros, v_type, 'x') + '\n\t\t' \
              + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
@@ -270,6 +270,55 @@ def getter(r, v_type, v_ros, size):
                     + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
     else:
         return 'out_ros_data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
+
+def free_and_malloc_SoA(v_ros, v_type, type):
+    alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
+    alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
+    size = '(' + v_type + '.Num())'
+    if type == 'FString':
+        size = '(strLength+1)'
+    elif type == 'FVector':
+        size = '(' + v_type + '.Num() * 3)'
+    elif type == 'FQuat':
+        size = '(' + v_type + '.Num() * 4)'
+    return 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t' \
+            + 'free(out_ros_data.' + v_ros + '.data);\n\t\t}\n\t\t' \
+            + 'out_ros_data.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
+
+# generate code for getterSoA - Structure-of-Arrays (SetROS2)
+def getterSoA(r_array, v_type_array, v_ros_array, size_array):
+    # WARNING: there could be multiple groups of SoA - need to go by matching substrings in v_ros_array
+    SoAs_ros = {}
+    SoAs_types = {}
+    for e in range(len(v_ros_array)):
+        if v_ros_array[e].split('.data[i].')[0] in SoAs_ros:
+            SoAs_ros[v_ros_array[e].split('.data[i].')[0]].append(v_ros_array[e])
+            SoAs_types[v_ros_array[e].split('.data[i].')[0]].append(v_type_array[e])
+        else:
+            SoAs_ros[v_ros_array[e].split('.data[i].')[0]] = [v_ros_array[e]]
+            SoAs_types[v_ros_array[e].split('.data[i].')[0]] = [v_type_array[e]]
+
+    malloc_size = {}
+    for t in SoAs_types:
+        if t not in malloc_size:
+            malloc_size[t] = ''
+        for e in SoAs_types[t]:
+            malloc_size[t] += 'sizeof(' + e + ') + '
+        malloc_size[t] = malloc_size[t][:-2]
+
+    getterSoA_result = ''
+    for t in SoAs_types:
+        # free_and_malloc
+        getterSoA_result += 'if (out_ros_data.' + t + '.data != nullptr)\n\t\t{\n\t\t\t' \
+            + 'free(out_ros_data.' + t + '.data);\n\t\t}\n\t\t' \
+            + 'out_ros_data.' + t + '.data = (decltype(out_ros_data.' + t + '.data))malloc(' + malloc_size[t] + ');\n\t\t'
+        # fill
+        for e in SoAs_types[t]:
+            getterSoA_result += 
+
+        print('unfinished')
+
+    return getterSoA_result
 
 
 # scan msg, srv and action files to find all types present in the given target_paths
@@ -425,6 +474,11 @@ def get_types_cpp(target_paths):
             res = get_var_name(v, is_dynamic_array)
             res_ros = get_ros_var_name(v, is_dynamic_array)
 
+            r_array = []
+            v_type_array = []
+            v_ros_array = []
+            size_array = []
+
             it_type = iter(res)
             it_ros = iter(res_ros)
             for r in it_type:
@@ -441,12 +495,27 @@ def get_types_cpp(target_paths):
                 next(it_ros)
                 v_type = next(it_type)
                 v_ros = next(it_ros)
+
                 if ('unsigned int' in r or 'double' in r or 'int8' in r or 'uint16' in r or 'uint64' in r):
                     cpp_type += r + ' ' + v_type + ';\n\n\t'
                 else:
                     cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + v_type + ';\n\n\t'
                 set_from_ros2 += setter(r, v_type, v_ros, int(size))
-                set_ros2      += getter(r, v_type, v_ros, int(size))
+
+                if '.data[i].' not in v_ros:
+                    set_ros2 += getterAoS(r, v_type, v_ros, int(size))
+                else:
+                    r_array.append(r)
+                    v_type_array.append(v_type)
+                    v_ros_array.append(v_ros)
+                    size_array.append(int(size))
+
+            if any('.data[i].' in vr for vr in v_ros_array) and any('fields_' in vt for vt in v_type_array) and not any('_fields_' in vt for vt in v_type_array):
+                print('getter with:\n' + str(r_array) + '\n' + str(v_type_array) + '\n' + str(v_ros_array) + '\n' + str(size_array))
+
+            if len(r_array) > 0:
+                set_ros2 += getterSoA(r_array, v_type_array, v_ros_array, size_array)
+                
 
         types_cpp[key] = [cpp_type, set_from_ros2, set_ros2]
 
