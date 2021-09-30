@@ -157,7 +157,7 @@ def cpp2ros_vector(v_ros, v_type, comp, is_array = False, is_fixed_size = False)
         iterator = '[i]'
     return 'out_ros_data.' + v_ros + iterator_ros + component.lower() + ' = ' + v_type + iterator + component.upper() + ';'
 
-def free_and_malloc(v_ros, v_type, type):
+def free_and_malloc(v_ros, v_type, type, Free=True):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
     alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
     size = '(' + v_type + '.Num())'
@@ -167,8 +167,11 @@ def free_and_malloc(v_ros, v_type, type):
         size = '(' + v_type + '.Num() * 3)'
     elif type == 'FQuat':
         size = '(' + v_type + '.Num() * 4)'
-    return 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t' \
-            + 'free(out_ros_data.' + v_ros + '.data);\n\t\t}\n\t\t' \
+    free_mem = ''
+    if Free:
+        free_mem = 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t'\
+                 + 'free(out_ros_data.' + v_ros + '.data);\n\t\t}\n\t\t'
+    return  free_mem \
             + 'out_ros_data.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
 
 # generate code for getterAoS - Array-of-Structures (SetROS2)
@@ -182,8 +185,7 @@ def getterAoS(r, v_type, v_ros, size):
              + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
              + cpp2ros_vector(v_ros, v_type, 'z') + '\n\t\t' \
              + cpp2ros_vector(v_ros, v_type, 'w') + '\n\n\t\t'
-    elif r == 'FString':
-        
+    elif r == 'FString':  
         return '{\n\t\t\t' \
             + 'FTCHARToUTF8 strUtf8( *' + v_type + ' );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
             + free_and_malloc(v_ros, v_type, r) \
@@ -290,13 +292,16 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
     # WARNING: there could be multiple groups of SoA - need to go by matching substrings in v_ros_array
     SoAs_ros = {}
     SoAs_types = {}
+    SoAs_r = {}
     for e in range(len(v_ros_array)):
         if v_ros_array[e].split('.data[i].')[0] in SoAs_ros:
             SoAs_ros[v_ros_array[e].split('.data[i].')[0]].append(v_ros_array[e])
             SoAs_types[v_ros_array[e].split('.data[i].')[0]].append(v_type_array[e])
+            SoAs_r[v_ros_array[e].split('.data[i].')[0]].append(r_array[e])
         else:
             SoAs_ros[v_ros_array[e].split('.data[i].')[0]] = [v_ros_array[e]]
             SoAs_types[v_ros_array[e].split('.data[i].')[0]] = [v_type_array[e]]
+            SoAs_r[v_ros_array[e].split('.data[i].')[0]] = [r_array[e]]
 
     malloc_size = {}
     for t in SoAs_types:
@@ -313,8 +318,35 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
             + 'free(out_ros_data.' + t + '.data);\n\t\t}\n\t\t' \
             + 'out_ros_data.' + t + '.data = (decltype(out_ros_data.' + t + '.data))malloc(' + malloc_size[t] + ');\n\t\t'
         # fill
-        for e in SoAs_types[t]:
-            getterSoA_result += 
+        getterSoA_result += 'for (int i = 0; i < ' + SoAs_types[t][0] + '.Num(); i++)\n\t\t{\n\t\t\t'
+        for i in range(len(SoAs_types[t])):
+            v_type = SoAs_types[t][i]
+            v_ros = SoAs_ros[t][i]
+            r = SoAs_r[t][i]
+            if 'TArray' in r:
+                r = r.split('<',1)[1].split('>')[0]
+            if r == 'FVector':
+                getterSoA_result += cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\n\t\t\t'
+            elif r == 'FQuat':
+                getterSoA_result += cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_type, 'w', True, False) + '\n\n\t\t\t'
+            elif r == 'FString':  
+                getterSoA_result += '{\n\t\t\t\t' \
+                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t\t' \
+                    + free_and_malloc(v_ros, v_type, r, False) \
+                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
+                    + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
+                    + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t' \
+                    + '}\n\n\t\t\t'
+            elif 'TArray' in r:
+                getterSoA_result += '\t\t\tUE_LOG(LogTemp, Error, TEXT("Not Implemented Yet!"));\n\n'
+            else:
+                getterSoA_result += 'out_ros_data.' + v_ros + ' = ' + v_type + '[i];\n\n\t\t\t'
+        getterSoA_result += '}\n\t'
 
         print('unfinished')
 
