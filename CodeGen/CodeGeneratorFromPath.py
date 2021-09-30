@@ -563,80 +563,85 @@ env = Environment(loader=file_loader)
 
 current_dir = os.getcwd()
 
-ros_path = sys.argv[1]
-ue_path = sys.argv[2]
-Group = os.path.basename(os.path.dirname(ue_path))
+ros_paths = [sys.argv[1]]
+ue_paths = []
+Groups = []
+for i in range(2,len(sys.argv)):
+    ue_paths.append(sys.argv[i])
+    ros_paths.append(os.path.split(os.path.dirname(sys.argv[i]))[0])
+    Groups.append(os.path.basename(os.path.dirname(sys.argv[i])))
 
-types_cpp = get_types_cpp([ros_path, os.path.split(os.path.dirname(ue_path))[0]])
+types_cpp = get_types_cpp(ros_paths)
 
 
 # generate code
-for subdir in ['action','srv','msg']:
-    if os.path.exists(ue_path+'/'+subdir):
-        os.chdir(ue_path+'/'+subdir)
-        for file in glob.glob('*.'+subdir):
-            package_name = os.path.split(os.path.split(ue_path)[0])[1]
-            #print(package_name + '/' + file)
+for p in range(len(ue_paths)):
+    for subdir in ['action','srv','msg']:
+        if os.path.exists(ue_paths[p]+'/'+subdir):
+            os.chdir(ue_paths[p]+'/'+subdir)
+            for file in glob.glob('*.'+subdir):
+                package_name = os.path.split(os.path.split(ue_paths[p])[0])[1]
+                #print(package_name + '/' + file)
 
-            if check_deprecated(ue_path, subdir, file):
-                continue
-            
-            info = {}
-            info['Filename'] = package_name + '/' + file
-            info['Group'] = Group
-            name = os.path.splitext(file)[0]
-            # PascalCase to snake_case; correctly handles acronyms: TLA -> tla instead of t_l_a
-            name_lower = re.sub('([a-z0-9])([A-Z])', r'\1_\2', re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
-            info['Name'] = name_lower
-            info['NameCap'] = name
-            info['StructName'] = 'ROS' + info['NameCap']
-            if subdir == 'msg':
-                info['Types'] = types_cpp[Group + '/' + name][0]
-                info['SetFromROS2'] = types_cpp[Group + '/' + name][1]
-                info['SetROS2'] = types_cpp[Group + '/' + name][2]
-            elif subdir == 'srv':
-                info['ReqTypes'] = types_cpp[Group + '/' + name + '_Request'][0]
-                info['ReqSetFromROS2'] = types_cpp[Group + '/' + name + '_Request'][1]
-                info['ReqSetROS2'] = types_cpp[Group + '/' + name + '_Request'][2]
-                info['ResTypes'] = types_cpp[Group + '/' + name + '_Response'][0]
-                info['ResSetFromROS2'] = types_cpp[Group + '/' + name + '_Response'][1]
-                info['ResSetROS2'] = types_cpp[Group + '/' + name + '_Response'][2]
-            elif subdir == 'action':
-                info['GoalTypes'] = types_cpp[Group + '/' + name + '_SendGoal'][0]
-                info['GoalSetFromROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][1].replace('in_ros_data.','in_ros_data.goal.')
-                info['GoalSetROS2'] = types_cpp[Group + '/' + name + '_SendGoal'][2].replace('out_ros_data.','out_ros_data.goal.')
+                if check_deprecated(ue_paths[p], subdir, file):
+                    continue
                 
-                info['ResultTypes'] = types_cpp[Group + '/' + name + '_GetResult'][0]
-                info['ResultSetFromROS2'] = types_cpp[Group + '/' + name + '_GetResult'][1].replace('in_ros_data.','in_ros_data.result.')
-                info['ResultSetROS2'] = types_cpp[Group + '/' + name + '_GetResult'][2].replace('out_ros_data.','out_ros_data.result.')
-                
-                info['FeedbackTypes'] = types_cpp[Group + '/' + name + '_Feedback'][0]
-                info['FeedbackSetFromROS2'] = types_cpp[Group + '/' + name + '_Feedback'][1].replace('in_ros_data.','in_ros_data.feedback.')
-                info['FeedbackSetROS2'] = types_cpp[Group + '/' + name + '_Feedback'][2].replace('out_ros_data.','out_ros_data.feedback.')
+                info = {}
+                info['Filename'] = package_name + '/' + file
+                info['Group'] = Groups[p]
+                name = os.path.splitext(file)[0]
+                # PascalCase to snake_case; correctly handles acronyms: TLA -> tla instead of t_l_a
+                name_lower = re.sub('([a-z0-9])([A-Z])', r'\1_\2', re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
+                info['Name'] = name_lower
+                info['NameCap'] = name
+                info['StructName'] = 'ROS' + info['NameCap']
+                if subdir == 'msg':
+                    info['Types'] = types_cpp[Groups[p] + '/' + name][0]
+                    info['SetFromROS2'] = types_cpp[Groups[p] + '/' + name][1]
+                    info['SetROS2'] = types_cpp[Groups[p] + '/' + name][2]
+                elif subdir == 'srv':
+                    info['ReqTypes'] = types_cpp[Groups[p] + '/' + name + '_Request'][0]
+                    info['ReqSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Request'][1]
+                    info['ReqSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Request'][2]
+                    info['ResTypes'] = types_cpp[Groups[p] + '/' + name + '_Response'][0]
+                    info['ResSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Response'][1]
+                    info['ResSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Response'][2]
+                elif subdir == 'action':
+                    info['GoalTypes'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][0]
+                    info['GoalSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][1].replace('in_ros_data.','in_ros_data.goal.')
+                    info['GoalSetROS2'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][2].replace('out_ros_data.','out_ros_data.goal.')
+                    
+                    info['ResultTypes'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][0]
+                    info['ResultSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][1].replace('in_ros_data.','in_ros_data.result.')
+                    info['ResultSetROS2'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][2].replace('out_ros_data.','out_ros_data.result.')
+                    
+                    info['FeedbackTypes'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][0]
+                    info['FeedbackSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][1].replace('in_ros_data.','in_ros_data.feedback.')
+                    info['FeedbackSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][2].replace('out_ros_data.','out_ros_data.feedback.')
 
-            os.chdir(current_dir)
-    
-            output_h = ''
-            output_cpp = ''
-            if subdir == 'msg':
-                output_h = env.get_template('Msg.h').render(data=info)
-                output_cpp = env.get_template('Msg.cpp').render(data=info)
-            elif subdir == 'srv':
-                output_h = env.get_template('Srv.h').render(data=info)
-                output_cpp = env.get_template('Srv.cpp').render(data=info)
-            elif subdir == 'action':
-                output_h = env.get_template('Action.h').render(data=info)
-                output_cpp = env.get_template('Action.cpp').render(data=info)
-            else:
-                print('type not found')
+                os.chdir(current_dir)
+        
+                output_h = ''
+                output_cpp = ''
+                if subdir == 'msg':
+                    output_h = env.get_template('Msg.h').render(data=info)
+                    output_cpp = env.get_template('Msg.cpp').render(data=info)
+                elif subdir == 'srv':
+                    output_h = env.get_template('Srv.h').render(data=info)
+                    output_cpp = env.get_template('Srv.cpp').render(data=info)
+                elif subdir == 'action':
+                    output_h = env.get_template('Action.h').render(data=info)
+                    output_cpp = env.get_template('Action.cpp').render(data=info)
+                else:
+                    print('type not found')
 
-            # this should only happen if the file does not exist
-            filename=current_dir+'/ROS2'+name+subdir.title()
-            file_h = open(filename+'.h', "w")
-            file_cpp = open(filename+'.cpp', "w")
+                # this should only happen if the file does not exist
+                filename=current_dir+'/ROS2'+name+subdir.title()
+                file_h = open(filename+'.h', "w")
+                file_cpp = open(filename+'.cpp', "w")
 
-            file_h.write(output_h)
-            file_cpp.write(output_cpp)
+                file_h.write(output_h)
+                file_cpp.write(output_cpp)
 
-            file_h.close()
-            file_cpp.close()
+                file_h.close()
+                file_cpp.close()
