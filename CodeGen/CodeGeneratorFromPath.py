@@ -348,8 +348,6 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
                 getterSoA_result += 'out_ros_data.' + v_ros + ' = ' + v_type + '[i];\n\n\t\t\t'
         getterSoA_result += '}\n\t'
 
-        print('unfinished')
-
     return getterSoA_result
 
 
@@ -438,12 +436,29 @@ def get_types_dict(target_paths):
                         # remove constants - these will eventually need to be used
                         content = [ c for c in content if '=' not in c ]
 
-                        if not fi.endswith('.action'):
+                        if fi.endswith('.msg'):
                             # remove comments, empty and separator lines; keep only variable type and name
                             content = [ c.split()[0:2] for c in content if  c != '---' ]
                             #content = [ c for c in content if '=' not in c[1] ] # ignore constants
                             types_dict[t] = content
-                        else:
+                        elif fi.endswith('.srv'):
+                            content = [ c.split()[0:2] for c in content ]
+                            counter = 0
+                            for c in content:
+                                if not c == ['---']:
+                                    if counter == 0:
+                                        if (t+'_Request') in types_dict and c not in types_dict[t+'_Request']:
+                                            types_dict[t+'_Request'].append(c)
+                                        else:
+                                            types_dict[t+'_Request'] = [c]
+                                    elif counter == 1:
+                                        if (t+'_Response') in types_dict and c not in types_dict[t+'_Response']:
+                                            types_dict[t+'_Response'].append(c)
+                                        else:
+                                            types_dict[t+'_Response'] = [c]
+                                else:
+                                    counter += 1
+                        elif fi.endswith('.action'):
                             # remove comments and empty lines; keep only variable type and name
                             content = [ c.split()[0:2] for c in content ]
                             counter = 0
@@ -528,7 +543,7 @@ def get_types_cpp(target_paths):
                 v_type = next(it_type)
                 v_ros = next(it_ros)
 
-                if ('unsigned int' in r or 'double' in r or 'int8' in r or 'uint16' in r or 'uint64' in r):
+                if ('unsigned int' in r or 'double' in r or 'int8' in r or 'int16' in r or 'uint16' in r or 'uint64' in r):
                     cpp_type += r + ' ' + v_type + ';\n\n\t'
                 else:
                     cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + v_type + ';\n\n\t'
@@ -568,11 +583,13 @@ ue_paths = []
 Groups = []
 for i in range(2,len(sys.argv)):
     ue_paths.append(sys.argv[i])
-    ros_paths.append(os.path.split(os.path.dirname(sys.argv[i]))[0])
+    if '/share/' in sys.argv[i]:
+        ros_paths.append(os.path.split(os.path.dirname(sys.argv[i]))[0])
+    else:
+        ros_paths.append(sys.argv[i])
     Groups.append(os.path.basename(os.path.dirname(sys.argv[i])))
 
 types_cpp = get_types_cpp(ros_paths)
-
 
 # generate code
 for p in range(len(ue_paths)):
