@@ -542,8 +542,8 @@ def get_types_cpp(target_paths):
                     v_ros_array.append(v_ros)
                     size_array.append(int(size))
 
-            if any('.data[i].' in vr for vr in v_ros_array) and any('fields_' in vt for vt in v_type_array) and not any('_fields_' in vt for vt in v_type_array):
-                print('getter with:\n' + str(r_array) + '\n' + str(v_type_array) + '\n' + str(v_ros_array) + '\n' + str(size_array))
+            # if any('.data[i].' in vr for vr in v_ros_array) and any('fields_' in vt for vt in v_type_array) and not any('_fields_' in vt for vt in v_type_array):
+            #     print('getter with:\n' + str(r_array) + '\n' + str(v_type_array) + '\n' + str(v_ros_array) + '\n' + str(size_array))
 
             if len(r_array) > 0:
                 set_ros2 += getterSoA(r_array, v_type_array, v_ros_array, size_array)
