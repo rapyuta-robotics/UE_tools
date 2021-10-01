@@ -307,16 +307,21 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
     for t in SoAs_types:
         if t not in malloc_size:
             malloc_size[t] = ''
+        malloc_size[t] += SoAs_types[t][0] + '.Num() * '
+        malloc_size[t] += '('
         for e in SoAs_types[t]:
             malloc_size[t] += 'sizeof(' + e + ') + '
-        malloc_size[t] = malloc_size[t][:-2]
+        malloc_size[t] = malloc_size[t][:-3]
+        malloc_size[t] += ')'
 
     getterSoA_result = ''
     for t in SoAs_types:
         # free_and_malloc
         getterSoA_result += 'if (out_ros_data.' + t + '.data != nullptr)\n\t\t{\n\t\t\t' \
             + 'free(out_ros_data.' + t + '.data);\n\t\t}\n\t\t' \
-            + 'out_ros_data.' + t + '.data = (decltype(out_ros_data.' + t + '.data))malloc(' + malloc_size[t] + ');\n\t\t'
+            + 'out_ros_data.' + t + '.data = (decltype(out_ros_data.' + t + '.data))malloc(' + malloc_size[t] + ');\n\t\t' \
+            + 'out_ros_data.' + t + '.size = ' + SoAs_types[t][0] + '.Num();\n\t\t' \
+            + 'out_ros_data.' + t + '.capacity = ' + SoAs_types[t][0] + '.Num();\n\t\t'
         # fill
         getterSoA_result += 'for (int i = 0; i < ' + SoAs_types[t][0] + '.Num(); i++)\n\t\t{\n\t\t\t'
         for i in range(len(SoAs_types[t])):
