@@ -547,7 +547,7 @@ def get_types_cpp(target_paths):
                 next(it_ros)
                 v_type = next(it_type)
                 v_ros = next(it_ros)
-
+                
                 if ('unsigned int' in r or 'double' in r or 'int8' in r or 'int16' in r or 'uint16' in r or 'uint64' in r):
                     cpp_type += r + ' ' + v_type + ';\n\n\t'
                 else:
