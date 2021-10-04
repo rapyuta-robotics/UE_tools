@@ -104,6 +104,7 @@ def setter(r, v_type, v_ros, size):
         if 'FVector' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add(FVector());\n\t\t\t' \
                     + v_type + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
                     + v_type + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
                     + v_type + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
@@ -111,12 +112,14 @@ def setter(r, v_type, v_ros, size):
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
                 return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add(FVector());\n\t\t\t' \
                     + v_type + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
                     + v_type + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
                     + v_type + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
                 return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add(FQuat());\n\t\t\t' \
                     + v_type + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
                     + v_type + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
                     + v_type + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
@@ -124,24 +127,29 @@ def setter(r, v_type, v_ros, size):
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
                 return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add(FQuat());\n\t\t\t' \
                     + v_type + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
                     + v_type + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
                     + v_type + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t\t' \
                     + v_type + '[i].W = in_ros_data.' + v_ros + '.w;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add("");\n\t\t\t' \
+                    + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data,in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
+                    + v_type + '.Add("");\n\t\t\t' \
+                    + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data,in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
         else:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = in_ros_data.' + v_ros + '[i];\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '.Add(in_ros_data.' + v_ros + '[i]);\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '[i] = in_ros_data.' + v_ros + ';\n\t\t}\n\n\t\t'
+                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '.Add(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
     else:
         return v_type + ' = in_ros_data.' + v_ros + ';\n\n\t\t'
 
