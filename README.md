@@ -5,7 +5,7 @@ Python script to generate UE4 classes to interface with ROS2 messages.
 
 Based on Jinja2.
 
-Ignores deprecated message types.
+Ignores message types deprecated in Foxy.
 
 ### Usage
 `python3 CodeGeneratorFromPath.py <ros2-base-share-path> [<custom-message-path>]`
