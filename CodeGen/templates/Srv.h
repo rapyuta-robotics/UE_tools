@@ -13,7 +13,7 @@
 
 // potential problem: if this struct is defined multiple times!
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_Request
+struct RCLUE_API F{{data.StructName}}Request
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_Response
+struct RCLUE_API F{{data.StructName}}Response
 {
 	GENERATED_BODY()
 
@@ -66,19 +66,19 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetRequest(const F{{data.StructName}}_Request& Request);
+	void SetRequest(const F{{data.StructName}}Request& Request);
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void GetRequest(F{{data.StructName}}_Request& Request) const;
+	void GetRequest(F{{data.StructName}}Request& Request) const;
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void SetResponse(const F{{data.StructName}}_Response& Response);
+	void SetResponse(const F{{data.StructName}}Response& Response);
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void GetResponse(F{{data.StructName}}_Response& Response) const;
+	void GetResponse(F{{data.StructName}}Response& Response) const;
 	
 	virtual void* GetRequest() override;
 	virtual void* GetResponse() override;
