@@ -28,9 +28,15 @@ ue_third_party_lib_path = os.path.join(ue_third_party_path, 'lib')
 
 ros_include_path = os.path.join(ros_path, 'include')
 ros_lib_path = os.path.join(ros_path, 'lib')
+print(f'COPY {ros_package_name} FROM')
+print(ros_include_path)
+print(ros_lib_path)
 
 os.makedirs(ue_third_party_include_path, exist_ok=True)
 os.makedirs(ue_third_party_lib_path, exist_ok=True)
+print('TO')
+print(ue_third_party_include_path)
+print(ue_third_party_lib_path)
 
 # copy header
 try:
@@ -44,5 +50,5 @@ except OSError as e:
     exit(0)
 
 # copy lib
-for file_name in glob.glob(os.path.join(ros_path, 'lib', 'lib'+ros_package_name+'__*.so')):
+for file_name in glob.glob(os.path.join(ros_lib_path, 'lib'+ros_package_name+'__*.so')):
     shutil.copy(file_name, ue_third_party_lib_path)

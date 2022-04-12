@@ -15,7 +15,7 @@
 #include "ROS2{{data.NameCap}}Action.generated.h"
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_SendGoal_Request
+struct RCLUE_API F{{data.StructName}}SendGoalRequest
 {
 	GENERATED_BODY()
 
@@ -45,7 +45,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_SendGoal_Response
+struct RCLUE_API F{{data.StructName}}SendGoalResponse
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_GetResult_Request
+struct RCLUE_API F{{data.StructName}}GetResultRequest
 {
 	GENERATED_BODY()
 
@@ -96,7 +96,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_GetResult_Response
+struct RCLUE_API F{{data.StructName}}GetResultResponse
 {
 	GENERATED_BODY()
 
@@ -118,7 +118,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}_FeedbackMessage
+struct RCLUE_API F{{data.StructName}}FeedbackMessage
 {
 	GENERATED_BODY()
 
@@ -160,36 +160,36 @@ public:
 	virtual const rosidl_action_type_support_t* GetTypeSupport() const override;
 
   	UFUNCTION(BlueprintCallable)
-	void SetGoalRequest(const F{{data.StructName}}_SendGoal_Request& Goal);
+	void SetGoalRequest(const F{{data.StructName}}SendGoalRequest& Goal);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalRequest(F{{data.StructName}}_SendGoal_Request& Goal) const;
+	void GetGoalRequest(F{{data.StructName}}SendGoalRequest& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalResponse(const F{{data.StructName}}_SendGoal_Response& Goal);
+	void SetGoalResponse(const F{{data.StructName}}SendGoalResponse& Goal);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalResponse(F{{data.StructName}}_SendGoal_Response& Goal) const;
+	void GetGoalResponse(F{{data.StructName}}SendGoalResponse& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultRequest(const F{{data.StructName}}_GetResult_Request& Result);
+	void SetResultRequest(const F{{data.StructName}}GetResultRequest& Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetResultRequest(F{{data.StructName}}_GetResult_Request& Result) const;
+	void GetResultRequest(F{{data.StructName}}GetResultRequest& Result) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultResponse(const F{{data.StructName}}_GetResult_Response& Result);
+	void SetResultResponse(const F{{data.StructName}}GetResultResponse& Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetResultResponse(F{{data.StructName}}_GetResult_Response& Result) const;
+	void GetResultResponse(F{{data.StructName}}GetResultResponse& Result) const;
 
 
 
   	UFUNCTION(BlueprintCallable)
-	void SetFeedback(const F{{data.StructName}}_FeedbackMessage& Feedback);
+	void SetFeedback(const F{{data.StructName}}FeedbackMessage& Feedback);
 
   	UFUNCTION(BlueprintCallable)
-	void GetFeedback(F{{data.StructName}}_FeedbackMessage& Feedback) const;
+	void GetFeedback(F{{data.StructName}}FeedbackMessage& Feedback) const;
 	
 	virtual void* GetGoalRequest() override;
 	virtual void* GetGoalResponse() override;
@@ -198,9 +198,9 @@ public:
 	virtual void* GetFeedbackMessage() override;
 
 private:
-	{{data.Group}}__action__{{data.NameCap}}_SendGoal_Request {{data.NameCap}}_goal_request;
-	{{data.Group}}__action__{{data.NameCap}}_SendGoal_Response {{data.NameCap}}_goal_response;
-	{{data.Group}}__action__{{data.NameCap}}_GetResult_Request {{data.NameCap}}_result_request;
-	{{data.Group}}__action__{{data.NameCap}}_GetResult_Response {{data.NameCap}}_result_response;
-	{{data.Group}}__action__{{data.NameCap}}_FeedbackMessage {{data.NameCap}}_feedback_message;
+	{{data.Group}}__action__{{data.NameCap}}SendGoalRequest {{data.NameCap}}_goal_request;
+	{{data.Group}}__action__{{data.NameCap}}SendGoalResponse {{data.NameCap}}_goal_response;
+	{{data.Group}}__action__{{data.NameCap}}GetResultRequest {{data.NameCap}}_result_request;
+	{{data.Group}}__action__{{data.NameCap}}GetResultResponse {{data.NameCap}}_result_response;
+	{{data.Group}}__action__{{data.NameCap}}FeedbackMessage {{data.NameCap}}_feedback_message;
 };

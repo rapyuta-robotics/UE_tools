@@ -6,44 +6,61 @@ import glob
 import re
 import pandas as pd
 
-# generate variable name for C++
-def get_var_name(curval = {}, is_dynamic_array = False):
-    if len(curval) == 2:
-        vartype = curval[0]
-        if '[' not in curval[0] and ']' not in curval[0] and is_dynamic_array:
-            vartype += '[]'
-        return [str(vartype), str(curval[1])]
-    elif len(curval) == 3:
-        res = []
-        final = []
-        for v in curval[2]:
+def snake_to_pascal(in_text):
+    if '_' in in_text:
+        return in_text.replace("_", " ").title().replace(" ", "")
+    elif in_text.islower():
+        return in_text.title()
+    else:
+        return in_text
+
+def remove_underscore(in_text):
+    return in_text.replace("_", "")
+
+# generate variable name for UE C++
+# original_names: member names defined in .msg, .srv, .action
+# return {(type, size): var_name}
+def get_ue_var_name(original_names = {}, is_dynamic_array = False):
+    if len(original_names) == 2:
+        var_type = original_names[0]
+        if '[' not in original_names[0] and ']' not in original_names[0] and is_dynamic_array:
+            var_type += '[]'
+
+        var_name = snake_to_pascal(original_names[1])
+        if ('bool' == var_type):
+            var_name = f'b{var_name}'
+        return {convert_to_ue_type(var_type): var_name}
+    elif len(original_names) == 3:
+        res_ue = {}
+        final = {}
+        for v in original_names[2]:
             is_dynamic_array_var = is_dynamic_array
             if '[]' in v[0]:
                 is_dynamic_array_var = True
-            res = get_var_name(v, is_dynamic_array_var)
-            it = iter(res)
-            for r in it:
-                final.append(r)
-                final.append(curval[1] + '_' + next(it))
+            res_ue = get_ue_var_name(v, is_dynamic_array_var)
+            for t_ue, v_ue in res_ue.items():
+                # Type, Size, Var name (snake_case -> PascalCase)
+                final[t_ue] = f'{snake_to_pascal(original_names[1])}{v_ue}'
         return final
     else:
-        print('ERROR with ' + str(curval) + ' (get_var_name)')
-    return '',''
+        print('ERROR with ' + str(original_names) + ' (get_ue_var_name)')
+        return '',''
 
 # generate msg variable access for ROS msg
-def get_ros_var_name(curval = {}, is_dynamic_array = False):
-    if len(curval) == 2:
-        vartype = curval[0]
-        varname = curval[1]
-        if '[]' not in curval[0] and is_dynamic_array:
+# original_names: member names defined in .msg, .srv, .action
+def get_ros_var_name(original_names = {}, is_dynamic_array = False):
+    if len(original_names) == 2:
+        vartype = original_names[0]
+        varname = original_names[1]
+        if '[]' not in original_names[0] and is_dynamic_array:
             vartype += '[]'
-        if '[]' in curval[0]:
+        if '[]' in original_names[0]:
             varname += '.data[i]'
         return [str(vartype), str(varname)]
-    elif len(curval) == 3:
+    elif len(original_names) == 3:
         res = []
         final = []
-        for v in curval[2]:
+        for v in original_names[2]:
             is_dynamic_array_var = is_dynamic_array
             if '[]' in v[0]:
                 is_dynamic_array_var = True
@@ -51,35 +68,63 @@ def get_ros_var_name(curval = {}, is_dynamic_array = False):
             it = iter(res)
             for r in it:
                 final.append(r)
-                if '[]' in curval[0]:
-                    final.append(curval[1] + '.data[i].' + next(it))
+                if '[]' in original_names[0]:
+                    final.append(original_names[1] + '.data[i].' + next(it))
                 else:
-                    final.append(curval[1] + '.' + next(it))
+                    final.append(original_names[1] + '.' + next(it))
         return final
     else:
-        print('ERROR with ' + str(curval) + ' (get_ros_var_name)')
+        print('ERROR with ' + str(original_names) + ' (get_ros_var_name)')
     return '',''
 
-def convert_to_cpp_type(t):
+# UE BP-supported types only?
+def convert_to_ue_type(t):
+    size = 0
     if t == 'int32':
-        return 'int'
+        t = 'int'
     elif t == 'uint32':
-        return 'unsigned int'
+        t = 'unsigned int'
     elif t == 'byte':
-        return 'uint8'
+        t = 'uint8'
     elif t == 'char':
-        return 'uint8'
+        t = 'uint8'
     elif t == 'float32':
-        return 'float'
+        t = 'float'
     elif t == 'float64':
-        return 'double'
+        t = 'double'
     elif t == 'string':
-        return 'FString'
+        t = 'FString'
     elif t == 'Vector3' or t == 'Point32':
-        return 'FVector'
+        t = 'FVector'
     elif t == 'Quaternion':
-        return 'FQuat'
-    return t
+        t = 'FQuat'
+    elif '[]' in t:
+        t = t.replace('[]','')
+        t = f'TArray<{convert_to_ue_type(t)[0]}>'
+    elif ('[' in t) and (']' in t):
+        tmp = re.split('\[|\]', t)
+        size = tmp[1].replace('<=','')
+        t = f'TArray<{convert_to_ue_type(tmp[0])[0]}>'
+    #elif t == 'geometry_msgs/Pose': -> {FRRDoubleVector, FQuat}
+    #elif t == 'geometry_msgs/Twist': -> {FVector TwistLinear, FVector TwistAngular}
+    return (t, size)
+
+def get_type_default_value_str(t):
+    if 'bool' == t:
+        return 'false'
+    if 'int' in t:
+        return '0'
+    elif 'float' in t:
+        return '0.f'
+    elif 'double' == t:
+        return '0.f'
+    elif 'FVector' == t:
+        return 'FVector::ZeroVector'
+    elif 'FQuat' == t:
+        return 'FQuat::Identity'
+    elif 'FTransform' == t:
+        return 'FTransform::Identity'
+    return None
 
 def check_deprecated(path, sdir, file):
     file_path = str(path) + '/' + str(sdir) + '/' + str(file)
@@ -93,67 +138,67 @@ def check_deprecated(path, sdir, file):
     return False
 
 # generate code for setter (SetFromROS2)
-def setter(r, v_type, v_ros, size):
+def setter(r, v_ue, v_ros, size):
     if r == 'FVector':
-        return v_type + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = in_ros_data.' + v_ros + '.z;\n\n\t\t'
+        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\n\t\t'
     elif r == 'FQuat':
-        return v_type + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_type + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_type + '.Z = in_ros_data.' + v_ros + '.z;\n\t\t' + v_type + '.W = in_ros_data.' + v_ros + '.w;\n\n\t\t'
+        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\t\t' + v_ue + '.W = in_ros_data.' + v_ros + '.w;\n\n\t\t'
     elif r == 'FString':
-        return v_type + '.AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\n\t\t'
+        return v_ue + '.AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\n\t\t'
     elif 'TArray' in r:
         if 'FVector' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add(FVector());\n\t\t\t' \
-                    + v_type + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
-                    + v_type + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
-                    + v_type + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add(FVector::ZeroVector);\n\t\t\t' \
+                    + v_ue + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
+                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
+                    + v_ue + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add(FVector());\n\t\t\t' \
-                    + v_type + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
-                    + v_type + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
-                    + v_type + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add(FVector::ZeroVector);\n\t\t\t' \
+                    + v_ue + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
+                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
+                    + v_ue + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t}\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add(FQuat());\n\t\t\t' \
-                    + v_type + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
-                    + v_type + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
-                    + v_type + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add(FQuat::Identity);\n\t\t\t' \
+                    + v_ue + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
+                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
+                    + v_ue + '[i].Z = in_ros_data.' + v_ros + '[i].z;\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add(FQuat());\n\t\t\t' \
-                    + v_type + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
-                    + v_type + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
-                    + v_type + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t\t' \
-                    + v_type + '[i].W = in_ros_data.' + v_ros + '.w;\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add(FQuat::Identity);\n\t\t\t' \
+                    + v_ue + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
+                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
+                    + v_ue + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t\t' \
+                    + v_ue + '[i].W = in_ros_data.' + v_ros + '.w;\n\t\t}\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add("");\n\t\t\t' \
-                    + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add("");\n\t\t\t' \
+                    + v_ue + '[i].AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' \
-                    + v_type + '.Add("");\n\t\t\t' \
-                    + v_type + '[i].AppendChars(in_ros_data.' + v_ros + '.data,in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
+                    + v_ue + '.Add("");\n\t\t\t' \
+                    + v_ue + '[i].AppendChars(in_ros_data.' + v_ros + '.data,in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
         else:
             if size > 0:
-                return 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t' + v_type + '.Add(in_ros_data.' + v_ros + '[i]);\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' + v_ue + '.Add(in_ros_data.' + v_ros + '[i]);\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return 'for (int i = 0; i < in_ros_data.' + v_ros_size + '.size; i++)\n\t\t{\n\t\t\t' + v_type + '.Add(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
+                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' + v_ue + '.Add(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
     else:
-        return v_type + ' = in_ros_data.' + v_ros + ';\n\n\t\t'
+        return v_ue + ' = in_ros_data.' + v_ros + ';\n\n\t\t'
 
-def cpp2ros_vector(v_ros, v_type, comp, is_array = False, is_fixed_size = False):
+def cpp2ros_vector(v_ros, v_ue, comp, is_array = False, is_fixed_size = False):
     iterator = ''
     iterator_ros = ''
     component = ''
@@ -163,18 +208,18 @@ def cpp2ros_vector(v_ros, v_type, comp, is_array = False, is_fixed_size = False)
         iterator_ros = '[i]'
     if is_array:
         iterator = '[i]'
-    return 'out_ros_data.' + v_ros + iterator_ros + component.lower() + ' = ' + v_type + iterator + component.upper() + ';'
+    return 'out_ros_data.' + v_ros + iterator_ros + component.lower() + ' = ' + v_ue + iterator + component.upper() + ';'
 
-def free_and_malloc(v_ros, v_type, type, Free=True):
+def free_and_malloc(v_ros, v_ue, type, Free=True):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
     alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
-    size = '(' + v_type + '.Num())'
+    size = '(' + v_ue + '.Num())'
     if type == 'FString':
         size = '(strLength+1)'
     elif type == 'FVector':
-        size = '(' + v_type + '.Num() * 3)'
+        size = '(' + v_ue + '.Num() * 3)'
     elif type == 'FQuat':
-        size = '(' + v_type + '.Num() * 4)'
+        size = '(' + v_ue + '.Num() * 4)'
     free_mem = ''
     if Free:
         free_mem = 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t'\
@@ -183,120 +228,120 @@ def free_and_malloc(v_ros, v_type, type, Free=True):
             + 'out_ros_data.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
 
 # generate code for getterAoS - Array-of-Structures (SetROS2)
-def getterAoS(r, v_type, v_ros, size):
+def getterAoS(r, v_ue, v_ros, size):
     if r == 'FVector':
-        return cpp2ros_vector(v_ros, v_type, 'x') + '\n\t\t' \
-             + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
-             + cpp2ros_vector(v_ros, v_type, 'z') + '\n\n\t\t'
+        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\n\t\t'
     elif r == 'FQuat':
-        return cpp2ros_vector(v_ros, v_type, 'x') + '\n\t\t' \
-             + cpp2ros_vector(v_ros, v_type, 'y') + '\n\t\t' \
-             + cpp2ros_vector(v_ros, v_type, 'z') + '\n\t\t' \
-             + cpp2ros_vector(v_ros, v_type, 'w') + '\n\n\t\t'
+        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\t\t' \
+             + cpp2ros_vector(v_ros, v_ue, 'w') + '\n\n\t\t'
     elif r == 'FString':  
         return '{\n\t\t\t' \
-            + 'FTCHARToUTF8 strUtf8( *' + v_type + ' );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
-            + free_and_malloc(v_ros, v_type, r) \
-            + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '), (strLength+1)*sizeof(char));\n\t\t\t' \
+            + 'FTCHARToUTF8 strUtf8( *' + v_ue + ' );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
+            + free_and_malloc(v_ros, v_ue, r) \
+            + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '), (strLength+1)*sizeof(char));\n\t\t\t' \
             + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t' \
             + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t' \
             + '}\n\n\t\t'
     elif 'TArray' in r:
-        for_loop_fixed = 'for (int i = 0; i < ' + str(size) + '; i++)\n\t\t{\n\t\t\t'
-        for_loop_dynamic = 'for (int i = 0; i < ' + v_type + '.Num(); i++)\n\t\t{\n\t\t\t'
+        for_loop_fixed = 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t'
+        for_loop_dynamic = 'for (auto i = 0; i < ' + v_ue + '.Num(); ++i)\n\t\t{\n\t\t\t'
         if 'FVector' in r:
             if size > 0:
                 return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_type, 'x', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'y', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'z', True, True) + '\n\t\t}\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, 'x', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'y', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'z', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return free_and_malloc(v_ros_size, v_type, 'FVector') + '\n\t\t' \
+                return free_and_malloc(v_ros_size, v_ue, 'FVector') + '\n\t\t' \
                     + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
         elif 'FQuat' in r:
             if size > 0:
                 return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_type, 'x', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'y', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'z', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'w', True, True) + '\n\t\t}\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, 'x', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'y', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'z', True, True) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'w', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return free_and_malloc(v_ros_size, v_type, 'FQuat') + '\n\t\t' \
+                return free_and_malloc(v_ros_size, v_ue, 'FQuat') + '\n\t\t' \
                     + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_type, 'w', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\t\t\t' \
+                    + cpp2ros_vector(v_ros, v_ue, 'w', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
         elif 'FString' in r:
             if size > 0:
                 return for_loop_fixed \
                     + '{\n\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
+                    + 'FTCHARToUTF8 strUtf8( *' + v_ue + '[i] );\n\t\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
                     + 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
                     + 'free(out_ros_data.' + v_ros + '.data);\n\t\t\t\t}\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.data = (char*)malloc((strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
+                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t}\n\n\t\t' \
                     + '}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
-                return free_and_malloc(v_ros_size.split('[i]',1)[0], v_type, 'Pointer') \
+                return free_and_malloc(v_ros_size.split('[i]',1)[0], v_ue, 'Pointer') \
                     + for_loop_dynamic \
                     + '{\n\t\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\t\t' \
+                    + 'FTCHARToUTF8 strUtf8( *' + v_ue + '[i] );\n\t\t\t\t' \
                     + 'int32 strLength = strUtf8.Length();\n\t\t\t\t' \
                     + 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
                     + 'free(out_ros_data.' + v_ros + '.data);\n\t\t\t\t}\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.data = (char*)malloc((strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
+                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t}\n\t\t' \
                     + '}\n\n\t\t'
         else:
             if size > 0:
                 return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_type, '', True, True) + '\n\t\t}\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, '', True, True) + '\n\t\t}\n\n\t\t'
             else:
                 # need to identify multidimensional arrays - need some sort of recursion with splits
                 v_ros_size = v_ros.split('.data[i]',1)[0]
                 cpp_base_type = r.split('>',1)[0].split('TArray<',1)[1]
-                return free_and_malloc(v_ros_size, v_type, cpp_base_type) + '\n\t\t' \
+                return free_and_malloc(v_ros_size, v_ue, cpp_base_type) + '\n\t\t' \
                     + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_type, '', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_type + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_type + '.Num();\n\n\t\t'
+                    + cpp2ros_vector(v_ros, v_ue, '', True, False) + '\n\t\t}\n\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
+                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
     else:
-        return 'out_ros_data.' + v_ros + ' = ' + v_type + ';\n\n\t\t'
+        return 'out_ros_data.' + v_ros + ' = ' + v_ue + ';\n\n\t\t'
 
-def free_and_malloc_SoA(v_ros, v_type, type):
+def free_and_malloc_SoA(v_ros, v_ue, type):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
     alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
-    size = '(' + v_type + '.Num())'
+    size = '(' + v_ue + '.Num())'
     if type == 'FString':
         size = '(strLength+1)'
     elif type == 'FVector':
-        size = '(' + v_type + '.Num() * 3)'
+        size = '(' + v_ue + '.Num() * 3)'
     elif type == 'FQuat':
-        size = '(' + v_type + '.Num() * 4)'
+        size = '(' + v_ue + '.Num() * 4)'
     return 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t{\n\t\t\t' \
             + 'free(out_ros_data.' + v_ros + '.data);\n\t\t}\n\t\t' \
             + 'out_ros_data.' + v_ros + '.data = (' + alloc_type_cast + ')malloc(' + size + '*sizeof(' + alloc_type + '));\n\t\t'
 
 # generate code for getterSoA - Structure-of-Arrays (SetROS2)
-def getterSoA(r_array, v_type_array, v_ros_array, size_array):
+def getterSoA(r_array, v_ue_array, v_ros_array, size_array):
     # WARNING: there could be multiple groups of SoA - need to go by matching substrings in v_ros_array
     SoAs_ros = {}
     SoAs_types = {}
@@ -304,11 +349,11 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
     for e in range(len(v_ros_array)):
         if v_ros_array[e].split('.data[i].')[0] in SoAs_ros:
             SoAs_ros[v_ros_array[e].split('.data[i].')[0]].append(v_ros_array[e])
-            SoAs_types[v_ros_array[e].split('.data[i].')[0]].append(v_type_array[e])
+            SoAs_types[v_ros_array[e].split('.data[i].')[0]].append(v_ue_array[e])
             SoAs_r[v_ros_array[e].split('.data[i].')[0]].append(r_array[e])
         else:
             SoAs_ros[v_ros_array[e].split('.data[i].')[0]] = [v_ros_array[e]]
-            SoAs_types[v_ros_array[e].split('.data[i].')[0]] = [v_type_array[e]]
+            SoAs_types[v_ros_array[e].split('.data[i].')[0]] = [v_ue_array[e]]
             SoAs_r[v_ros_array[e].split('.data[i].')[0]] = [r_array[e]]
 
     malloc_size = {}
@@ -331,34 +376,34 @@ def getterSoA(r_array, v_type_array, v_ros_array, size_array):
             + 'out_ros_data.' + t + '.size = ' + SoAs_types[t][0] + '.Num();\n\t\t' \
             + 'out_ros_data.' + t + '.capacity = ' + SoAs_types[t][0] + '.Num();\n\t\t'
         # fill
-        getterSoA_result += 'for (int i = 0; i < ' + SoAs_types[t][0] + '.Num(); i++)\n\t\t{\n\t\t\t'
+        getterSoA_result += 'for (auto i = 0; i < ' + SoAs_types[t][0] + '.Num(); ++i)\n\t\t{\n\t\t\t'
         for i in range(len(SoAs_types[t])):
-            v_type = SoAs_types[t][i]
+            v_ue = SoAs_types[t][i]
             v_ros = SoAs_ros[t][i]
             r = SoAs_r[t][i]
             if 'TArray' in r:
                 r = r.split('<',1)[1].split('>')[0]
             if r == 'FVector':
-                getterSoA_result += cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
-                                  + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
-                                  + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\n\t\t\t'
+                getterSoA_result += cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\n\t\t\t'
             elif r == 'FQuat':
-                getterSoA_result += cpp2ros_vector(v_ros, v_type, 'x', True, False) + '\n\t\t\t' \
-                                  + cpp2ros_vector(v_ros, v_type, 'y', True, False) + '\n\t\t\t' \
-                                  + cpp2ros_vector(v_ros, v_type, 'z', True, False) + '\n\t\t\t' \
-                                  + cpp2ros_vector(v_ros, v_type, 'w', True, False) + '\n\n\t\t\t'
+                getterSoA_result += cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\t\t\t' \
+                                  + cpp2ros_vector(v_ros, v_ue, 'w', True, False) + '\n\n\t\t\t'
             elif r == 'FString':  
                 getterSoA_result += '{\n\t\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_type + '[i] );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t\t' \
-                    + free_and_malloc(v_ros, v_type, r, False) \
-                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_type + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
+                    + 'FTCHARToUTF8 strUtf8( *' + v_ue + '[i] );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t\t' \
+                    + free_and_malloc(v_ros, v_ue, r, False) \
+                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
                     + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t' \
                     + '}\n\n\t\t\t'
             elif 'TArray' in r:
                 getterSoA_result += '\t\t\tUE_LOG(LogTemp, Error, TEXT("Not Implemented Yet!"));\n\n'
             else:
-                getterSoA_result += 'out_ros_data.' + v_ros + ' = ' + v_type + '[i];\n\n\t\t\t'
+                getterSoA_result += 'out_ros_data.' + v_ros + ' = ' + v_ue + '[i];\n\n\t\t\t'
         getterSoA_result += '}\n\t'
 
     return getterSoA_result
@@ -403,11 +448,10 @@ def get_types(target_paths):
                     types.add(c)
 
                 el = fp.split('/')
-                file_type = el[len(el)-3] + '/' + os.path.splitext(os.path.basename(fp))[0]
-                types.add(file_type)
-
-    # for t in types:
-    #     print(t)
+                struct_type = el[len(el)-3] + '/' + remove_underscore(os.path.splitext(os.path.basename(fp))[0])
+                types.add(struct_type)
+    
+    #print(types)
 
     return types
 
@@ -422,7 +466,12 @@ def get_types_dict(target_paths):
 
         # for every type
         for t in types:
-            tsplit = t.split('/')
+            tSplit = t.split('/')
+            tRequest = f'{t}Request'
+            tResponse = f'{t}Response'
+            tSendGoal = f'{t}SendGoal'
+            tGetResult = f'{t}GetResult'
+            tFeedback = f'{t}Feedback'
 
             # iterate all subfolders
             for subdir, dirs, files in os.walk(target_path):
@@ -433,7 +482,9 @@ def get_types_dict(target_paths):
                     content = []
 
                     # if the file corresponds to the type t being processed
-                    if (len(tsplit) == 1 and os.path.splitext(fi)[0] == t) or (len(tsplit) == 2 and tsplit[0] in subdir and os.path.splitext(fi)[0] == tsplit[1]):
+                    fi_name = os.path.splitext(fi)[0]
+                    struct_type = remove_underscore(fi_name)
+                    if (len(tSplit) == 1 and (struct_type == t)) or (len(tSplit) == 2 and (tSplit[0] in subdir) and (struct_type == tSplit[1])):
 
                         # load all data of the file into content, line by line
                         with open(os.path.join(subdir,fi)) as f:
@@ -460,15 +511,15 @@ def get_types_dict(target_paths):
                             for c in content:
                                 if not c == ['---']:
                                     if counter == 0:
-                                        if (t+'_Request') in types_dict and c not in types_dict[t+'_Request']:
-                                            types_dict[t+'_Request'].append(c)
+                                        if (tRequest in types_dict) and (c not in types_dict[tRequest]):
+                                            types_dict[tRequest].append(c)
                                         else:
-                                            types_dict[t+'_Request'] = [c]
+                                            types_dict[tRequest] = [c]
                                     elif counter == 1:
-                                        if (t+'_Response') in types_dict and c not in types_dict[t+'_Response']:
-                                            types_dict[t+'_Response'].append(c)
+                                        if (tResponse in types_dict) and (c not in types_dict[tResponse]):
+                                            types_dict[tResponse].append(c)
                                         else:
-                                            types_dict[t+'_Response'] = [c]
+                                            types_dict[tResponse] = [c]
                                 else:
                                     counter += 1
                         elif fi.endswith('.action'):
@@ -479,20 +530,20 @@ def get_types_dict(target_paths):
                                 if not c == ['---']:
                                     if '=' not in c[1]:
                                         if counter == 0:
-                                            if (t+'_SendGoal') in types_dict and c not in types_dict[t+'_SendGoal']:
-                                                types_dict[t+'_SendGoal'].append(c)
+                                            if (tSendGoal in types_dict) and (c not in types_dict[tSendGoal]):
+                                                types_dict[tSendGoal].append(c)
                                             else:
-                                                types_dict[t+'_SendGoal'] = [c]
+                                                types_dict[tSendGoal] = [c]
                                         elif counter == 1:
-                                            if (t+'_GetResult') in types_dict and c not in types_dict[t+'_GetResult']:
-                                                types_dict[t+'_GetResult'].append(c)
+                                            if (tGetResult in types_dict) and (c not in types_dict[tGetResult]):
+                                                types_dict[tGetResult].append(c)
                                             else:
-                                                types_dict[t+'_GetResult'] = [c]
+                                                types_dict[tGetResult] = [c]
                                         elif counter == 2:
-                                            if (t+'_Feedback') in types_dict and c not in types_dict[t+'_Feedback']:
-                                                types_dict[t+'_Feedback'].append(c)
+                                            if (tFeedback in types_dict) and (c not in types_dict[tFeedback]):
+                                                types_dict[tFeedback].append(c)
                                             else:
-                                                types_dict[t+'_Feedback'] = [c]
+                                                types_dict[tFeedback] = [c]
                                 else:
                                     counter += 1
 
@@ -514,7 +565,7 @@ def get_types_dict(target_paths):
     return types_dict
 
 
-# generate C++ code snippets to be inserted in their respective placeholders in the templates
+# generate UE & ROS C++ code snippets to be inserted in their respective placeholders in the templates
 # element 0: type
 # element 1: set from ros2
 # element 2: set ros2
@@ -531,60 +582,63 @@ def get_types_cpp(target_paths):
             if '[]' in v[0]:
                 is_dynamic_array = True
 
-            res = get_var_name(v, is_dynamic_array)
+            res_ue = get_ue_var_name(v, is_dynamic_array)
+            #print("res_ue", res_ue)
             res_ros = get_ros_var_name(v, is_dynamic_array)
+            #print("res_ros", res_ros)
 
-            r_array = []
-            v_type_array = []
+            t_ue_array = []
+            v_ue_array = []
             v_ros_array = []
             size_array = []
 
-            it_type = iter(res)
             it_ros = iter(res_ros)
-            for r in it_type:
-                size = 0
-                r = convert_to_cpp_type(r)
-                if '[]' in r:
-                    r = r.replace('[]','')
-                    r = 'TArray<' + convert_to_cpp_type(r) + '>'
-                elif '[' in r and ']' in r:
-                    tmp = re.split('\[|\]', r)
-                    tmp[1] = tmp[1].replace('<=','')
-                    size = tmp[1].replace('<=','')
-                    r = 'TArray<' + convert_to_cpp_type(tmp[0]) + '>'
+            for t_ue, v_ue in res_ue.items():
+                size = int(t_ue[1])
+                
+                # ros_type
                 next(it_ros)
-                v_type = next(it_type)
+                # ros_var
                 v_ros = next(it_ros)
                 
-                if ('unsigned int' in r or 'double' in r or 'int8' in r or 'int16' in r or 'uint16' in r or 'uint64' in r):
-                    cpp_type += r + ' ' + v_type + ';\n\n\t'
+                # BP does not support these types
+                dft_val = get_type_default_value_str(t_ue[0])
+                var_initialization = f' = {dft_val}' if (dft_val != None) else ''
+                var_declaration = f'{t_ue[0]} {v_ue}{var_initialization};\n\n\t'
+                if (('unsigned int' in t_ue[0]) or
+                    ('double' in t_ue[0]) or
+                    ('int8' in t_ue[0]) or
+                    ('int16' in t_ue[0]) or
+                    ('uint16' in t_ue[0]) or
+                    ('uint64' in t_ue[0])):
+                    cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
                 else:
-                    cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + r + ' ' + v_type + ';\n\n\t'
-                set_from_ros2 += setter(r, v_type, v_ros, int(size))
+                    cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + var_declaration
+                set_from_ros2 += setter(t_ue[0], v_ue, v_ros, size)
 
                 if '.data[i].' not in v_ros:
-                    set_ros2 += getterAoS(r, v_type, v_ros, int(size))
+                    set_ros2 += getterAoS(t_ue[0], v_ue, v_ros, size)
                 else:
-                    r_array.append(r)
-                    v_type_array.append(v_type)
+                    t_ue_array.append(t_ue[0])
+                    v_ue_array.append(v_ue)
                     v_ros_array.append(v_ros)
-                    size_array.append(int(size))
+                    size_array.append(size)
 
-            # if any('.data[i].' in vr for vr in v_ros_array) and any('fields_' in vt for vt in v_type_array) and not any('_fields_' in vt for vt in v_type_array):
-            #     print('getter with:\n' + str(r_array) + '\n' + str(v_type_array) + '\n' + str(v_ros_array) + '\n' + str(size_array))
+            # if any('.data[i].' in vr for vr in v_ros_array) and any('fields_' in vt for vt in v_ue_array) and not any('_fields_' in vt for vt in v_ue_array):
+            #     print('getter with:\n' + str(t_ue_array) + '\n' + str(v_ue_array) + '\n' + str(v_ros_array) + '\n' + str(size_array))
 
-            if len(r_array) > 0:
-                set_ros2 += getterSoA(r_array, v_type_array, v_ros_array, size_array)
+            if len(t_ue_array) > 0:
+                set_ros2 += getterSoA(t_ue_array, v_ue_array, v_ros_array, size_array)
                 
 
         types_cpp[key] = [cpp_type, set_from_ros2, set_ros2]
 
-    # for key, value in types_cpp.items():
-    #     print(str(key) + ' -> ' + str(value[2]))
-    #     print(str(key) + ' -> ' + str(value[0]))
+    
+    #for key, value in types_cpp.items():
+    #    print(str(key) + ' -> ' + str(value[2]))
+    #    print(str(key) + ' -> ' + str(value[0]))
 
     return types_cpp
-
 
 file_loader = FileSystemLoader('templates')
 env = Environment(loader=file_loader)
@@ -603,6 +657,11 @@ for i in range(2,len(sys.argv)):
     Groups.append(os.path.basename(os.path.dirname(sys.argv[i])))
 
 types_cpp = get_types_cpp(ros_paths)
+def is_valid_group_name(in_group_name):
+    return ((in_group_name in types_cpp) and len(types_cpp[in_group_name]) >= 3)
+
+def print_group_name_info(in_group_name):
+    print(f"types_cpp[{in_group_name}] size:{len(types_cpp[in_group_name]) if (in_group_name in types_cpp) else 0}")
 
 # generate code
 for p in range(len(ue_paths)):
@@ -625,29 +684,58 @@ for p in range(len(ue_paths)):
                 info['Name'] = name_lower
                 info['NameCap'] = name
                 info['StructName'] = 'ROS' + info['NameCap']
+                
+                p_group_name = f"{Groups[p]}/{name}"
+                group_name = p_group_name
                 if subdir == 'msg':
-                    info['Types'] = types_cpp[Groups[p] + '/' + name][0]
-                    info['SetFromROS2'] = types_cpp[Groups[p] + '/' + name][1]
-                    info['SetROS2'] = types_cpp[Groups[p] + '/' + name][2]
+                    if(is_valid_group_name(group_name)):
+                        info['Types'] = types_cpp[group_name][0]
+                        info['SetFromROS2'] = types_cpp[group_name][1]
+                        info['SetROS2'] = types_cpp[group_name][2]
+                    else:
+                        print_group_name_info(group_name)
+
                 elif subdir == 'srv':
-                    info['ReqTypes'] = types_cpp[Groups[p] + '/' + name + '_Request'][0]
-                    info['ReqSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Request'][1]
-                    info['ReqSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Request'][2]
-                    info['ResTypes'] = types_cpp[Groups[p] + '/' + name + '_Response'][0]
-                    info['ResSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Response'][1]
-                    info['ResSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Response'][2]
+                    group_name = f"{p_group_name}Request"
+                    if(is_valid_group_name(group_name)):
+                        info['ReqTypes'] = types_cpp[group_name][0]
+                        info['ReqSetFromROS2'] = types_cpp[group_name][1]
+                        info['ReqSetROS2'] = types_cpp[group_name][2]
+                    else:
+                        print_group_name_info(group_name)
+
+                    group_name = f"{p_group_name}Response"
+                    if(is_valid_group_name(group_name)):
+                        info['ResTypes'] = types_cpp[group_name][0]
+                        info['ResSetFromROS2'] = types_cpp[group_name][1]
+                        info['ResSetROS2'] = types_cpp[group_name][2]
+                    else:
+                        print_group_name_info(group_name)
+
                 elif subdir == 'action':
-                    info['GoalTypes'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][0]
-                    info['GoalSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][1].replace('in_ros_data.','in_ros_data.goal.')
-                    info['GoalSetROS2'] = types_cpp[Groups[p] + '/' + name + '_SendGoal'][2].replace('out_ros_data.','out_ros_data.goal.')
-                    
-                    info['ResultTypes'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][0]
-                    info['ResultSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][1].replace('in_ros_data.','in_ros_data.result.')
-                    info['ResultSetROS2'] = types_cpp[Groups[p] + '/' + name + '_GetResult'][2].replace('out_ros_data.','out_ros_data.result.')
-                    
-                    info['FeedbackTypes'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][0]
-                    info['FeedbackSetFromROS2'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][1].replace('in_ros_data.','in_ros_data.feedback.')
-                    info['FeedbackSetROS2'] = types_cpp[Groups[p] + '/' + name + '_Feedback'][2].replace('out_ros_data.','out_ros_data.feedback.')
+                    group_name = f"{p_group_name}SendGoal"
+                    if(is_valid_group_name(group_name)):
+                        info['GoalTypes'] = types_cpp[group_name][0]
+                        info['GoalSetFromROS2'] = types_cpp[group_name][1].replace('in_ros_data.','in_ros_data.goal.')
+                        info['GoalSetROS2'] = types_cpp[group_name][2].replace('out_ros_data.','out_ros_data.goal.')
+                    else:
+                        print_group_name_info(group_name)
+
+                    group_name = f"{p_group_name}GetResult"
+                    if(is_valid_group_name(group_name)):
+                        info['ResultTypes'] = types_cpp[group_name][0]
+                        info['ResultSetFromROS2'] = types_cpp[group_name][1].replace('in_ros_data.','in_ros_data.result.')
+                        info['ResultSetROS2'] = types_cpp[group_name][2].replace('out_ros_data.','out_ros_data.result.')
+                    else:
+                        print_group_name_info(group_name)
+
+                    group_name = f"{p_group_name}Feedback"
+                    if(is_valid_group_name(group_name)):
+                        info['FeedbackTypes'] = types_cpp[group_name][0]
+                        info['FeedbackSetFromROS2'] = types_cpp[group_name][1].replace('in_ros_data.','in_ros_data.feedback.')
+                        info['FeedbackSetROS2'] = types_cpp[group_name][2].replace('out_ros_data.','out_ros_data.feedback.')
+                    else:
+                        print_group_name_info(group_name)
 
                 os.chdir(current_dir)
         
