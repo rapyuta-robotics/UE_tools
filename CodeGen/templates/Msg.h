@@ -13,7 +13,7 @@
 #include "ROS2{{data.NameCap}}Msg.generated.h"
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}
+struct {{data.ModuleAPI}} F{{data.StructName}}
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ public:
 };
 
 UCLASS()
-class RCLUE_API UROS2{{data.NameCap}}Msg : public UROS2GenericMsg
+class {{data.ModuleAPI}} UROS2{{data.NameCap}}Msg : public UROS2GenericMsg
 {
 	GENERATED_BODY()
 

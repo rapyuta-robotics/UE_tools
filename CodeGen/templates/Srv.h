@@ -13,7 +13,7 @@
 
 // potential problem: if this struct is defined multiple times!
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}Request
+struct {{data.ModuleAPI}} F{{data.StructName}}Request
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}Response
+struct {{data.ModuleAPI}} F{{data.StructName}}Response
 {
 	GENERATED_BODY()
 
@@ -51,7 +51,7 @@ public:
 };
 
 UCLASS()
-class RCLUE_API UROS2{{data.NameCap}}Srv : public UROS2GenericSrv
+class {{data.ModuleAPI}} UROS2{{data.NameCap}}Srv : public UROS2GenericSrv
 {
 	GENERATED_BODY()
 
