@@ -1,10 +1,84 @@
 from jinja2 import Environment, FileSystemLoader
-from numpy.lib.stride_tricks import as_strided
 import sys
 import os
 import glob
 import re
-import pandas as pd
+
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
+# constants
+UE_SPECIFIC_TYPES = [
+    'Vector3', 
+    'Point', 
+    'Point32', 
+    'Quaternion'
+]
+
+# ros_type: ue_type
+TYPE_CONVERSION = {
+    'int32': 'int',
+    'uint32': 'unsigned int',
+    'byte': 'uint8',
+    'char': 'uint8',
+    'float32': 'float',
+    'float64': 'double',
+    'string': 'FString',
+    'Vector3':'FVector',
+    'Point': 'FVector',
+    'Point32':'FVector', 
+    'Quaternion': 'FQuat'
+}
+
+# used in set UPROPERTY to allow BP access
+BP_UNSUPPORTED_TYPES = [
+    'unsigned int', 
+    'double', 
+    'int8',
+    'int16',
+    'uint16',
+    'uint64',
+    'wstring'
+]
+
+# UE BP-supported types only?
+def convert_to_ue_type(t):
+    size = 0
+    if t in TYPE_CONVERSION :
+        t = TYPE_CONVERSION[t]
+    elif '[]' in t:
+        t = t.replace('[]','')
+        t = f'TArray<{convert_to_ue_type(t)[0]}>'
+    elif ('[' in t) and (']' in t):
+        tmp = re.split('\[|\]', t)
+        size = tmp[1].replace('<=','')
+        t = f'TArray<{convert_to_ue_type(tmp[0])[0]}>'
+    #elif t == 'geometry_msgs/Pose': -> {FRRDoubleVector, FQuat}
+    #elif t == 'geometry_msgs/Twist': -> {FVector TwistLinear, FVector TwistAngular}
+    
+    return (t, size)
+
+# todo use dict same as type conversion
+def get_type_default_value_str(t):
+    res = None
+    if 'bool' == t:
+        res = 'false'
+    if 'int' in t and not 'TArray' in t:
+        res = '0'
+    elif 'float' in t and not 'TArray' in t:
+        res = '0.f'
+    elif 'double' == t:
+        res = '0.f'
+    elif 'FVector' == t:
+        res = 'FVector::ZeroVector'
+    elif 'FQuat' == t:
+        res = 'FQuat::Identity'
+    elif 'FTransform' == t:
+        res = 'FTransform::Identity'
+
+    return res
 
 def snake_to_pascal(in_text):
     if '_' in in_text:
@@ -19,31 +93,34 @@ def remove_underscore(in_text):
 
 # generate variable name for UE C++
 # original_names: member names defined in .msg, .srv, .action
-# return {(type, size): var_name}
-def get_ue_var_name(original_names = {}, is_dynamic_array = False):
+# return [(type, size), var_name]
+def get_ue_var_name(original_names = [], is_dynamic_array = False):
     if len(original_names) == 2:
         var_type = original_names[0]
         if '[' not in original_names[0] and ']' not in original_names[0] and is_dynamic_array:
             var_type += '[]'
-
         var_name = snake_to_pascal(original_names[1])
         if ('bool' == var_type):
             var_name = f'b{var_name}'
-        return {convert_to_ue_type(var_type): var_name}
+        return [convert_to_ue_type(var_type), var_name]
     elif len(original_names) == 3:
-        res_ue = {}
-        final = {}
+        res_ue = []
+        final = []
         for v in original_names[2]:
             is_dynamic_array_var = is_dynamic_array
             if '[]' in v[0]:
                 is_dynamic_array_var = True
+            
             res_ue = get_ue_var_name(v, is_dynamic_array_var)
-            for t_ue, v_ue in res_ue.items():
+            for i in range(0, len(res_ue), 2):
+                t_ue = res_ue[i]
+                v_ue = res_ue[i + 1]
                 # Type, Size, Var name (snake_case -> PascalCase)
-                final[t_ue] = f'{snake_to_pascal(original_names[1])}{v_ue}'
+                final.append(t_ue)
+                final.append(f'{snake_to_pascal(original_names[1])}{v_ue}')
         return final
     else:
-        print('ERROR with ' + str(original_names) + ' (get_ue_var_name)')
+        logger.error('ERROR with ' + str(original_names) + ' (get_ue_var_name)')
         return '',''
 
 # generate msg variable access for ROS msg
@@ -74,57 +151,8 @@ def get_ros_var_name(original_names = {}, is_dynamic_array = False):
                     final.append(original_names[1] + '.' + next(it))
         return final
     else:
-        print('ERROR with ' + str(original_names) + ' (get_ros_var_name)')
+        logger.error('ERROR with ' + str(original_names) + ' (get_ros_var_name)')
     return '',''
-
-# UE BP-supported types only?
-def convert_to_ue_type(t):
-    size = 0
-    if t == 'int32':
-        t = 'int'
-    elif t == 'uint32':
-        t = 'unsigned int'
-    elif t == 'byte':
-        t = 'uint8'
-    elif t == 'char':
-        t = 'uint8'
-    elif t == 'float32':
-        t = 'float'
-    elif t == 'float64':
-        t = 'double'
-    elif t == 'string':
-        t = 'FString'
-    elif t == 'Vector3' or t == 'Point32':
-        t = 'FVector'
-    elif t == 'Quaternion':
-        t = 'FQuat'
-    elif '[]' in t:
-        t = t.replace('[]','')
-        t = f'TArray<{convert_to_ue_type(t)[0]}>'
-    elif ('[' in t) and (']' in t):
-        tmp = re.split('\[|\]', t)
-        size = tmp[1].replace('<=','')
-        t = f'TArray<{convert_to_ue_type(tmp[0])[0]}>'
-    #elif t == 'geometry_msgs/Pose': -> {FRRDoubleVector, FQuat}
-    #elif t == 'geometry_msgs/Twist': -> {FVector TwistLinear, FVector TwistAngular}
-    return (t, size)
-
-def get_type_default_value_str(t):
-    if 'bool' == t:
-        return 'false'
-    if 'int' in t:
-        return '0'
-    elif 'float' in t:
-        return '0.f'
-    elif 'double' == t:
-        return '0.f'
-    elif 'FVector' == t:
-        return 'FVector::ZeroVector'
-    elif 'FQuat' == t:
-        return 'FQuat::Identity'
-    elif 'FTransform' == t:
-        return 'FTransform::Identity'
-    return None
 
 def check_deprecated(path, sdir, file):
     file_path = str(path) + '/' + str(sdir) + '/' + str(file)
@@ -133,7 +161,7 @@ def check_deprecated(path, sdir, file):
         content = f.readlines()
     for line in content:
         if 'deprecated as of Foxy' in line:
-            print(file_path + ' is deprecated in foxy')
+            logger.info(file_path + ' is deprecated in foxy')
             return True
     return False
 
@@ -451,7 +479,7 @@ def get_types(target_paths):
                 struct_type = el[len(el)-3] + '/' + remove_underscore(os.path.splitext(os.path.basename(fp))[0])
                 types.add(struct_type)
     
-    #print(types)
+    logger.debug('get types: ', types)
 
     return types
 
@@ -463,7 +491,7 @@ def get_types_dict(target_paths):
 
     # for every folder to scan
     for target_path in target_paths:
-
+        logger.info('get_types_dict: target path {}'.format(target_path))
         # for every type
         for t in types:
             tSplit = t.split('/')
@@ -475,10 +503,10 @@ def get_types_dict(target_paths):
 
             # iterate all subfolders
             for subdir, dirs, files in os.walk(target_path):
-
                 # iterate over all msg, srv and action files
                 files = [ fi for fi in files if fi.endswith(('.msg','.srv','.action')) ]
                 for fi in files:
+                    # logger.debug('get_types_dict: target file {}'.format(fi))
                     content = []
 
                     # if the file corresponds to the type t being processed
@@ -548,9 +576,8 @@ def get_types_dict(target_paths):
                                     counter += 1
 
     # remove complex types that have a corresponding UE type
-    types_dict.pop('Vector3', None)
-    types_dict.pop('Point32', None)
-    types_dict.pop('Quaternion', None)
+    for ue_type in UE_SPECIFIC_TYPES:
+        types_dict.pop(ue_type, None)
 
     # traverse and add complex type breakdown
     for key, value in types_dict.items():
@@ -559,8 +586,8 @@ def get_types_dict(target_paths):
             if v in types_dict:
                 value[index] = [c[0],c[1],types_dict[v]]
 
-    # for key, value in types_dict.items():
-    #     print(str(key) + ' -> ' + str(value))
+    for key, value in types_dict.items():
+        logger.debug('get_types_dict: ' + str(key) + ' -> ' + str(value))
 
     return types_dict
 
@@ -574,6 +601,7 @@ def get_types_cpp(target_paths):
     types_cpp = {}
 
     for key, value in types_dict.items():
+        logger.debug('\n\nget_types_cpp: {}, {}'.format(key, value))
         cpp_type = ''
         set_ros2 = ''
         set_from_ros2 = ''
@@ -583,9 +611,9 @@ def get_types_cpp(target_paths):
                 is_dynamic_array = True
 
             res_ue = get_ue_var_name(v, is_dynamic_array)
-            #print("res_ue", res_ue)
+            logger.debug("res_ue: {}".format(res_ue))
             res_ros = get_ros_var_name(v, is_dynamic_array)
-            #print("res_ros", res_ros)
+            logger.debug("res_ros: {}".format(res_ros))
 
             t_ue_array = []
             v_ue_array = []
@@ -593,7 +621,11 @@ def get_types_cpp(target_paths):
             size_array = []
 
             it_ros = iter(res_ros)
-            for t_ue, v_ue in res_ue.items():
+
+            for i in range(0, len(res_ue), 2):
+                t_ue = res_ue[i]
+                v_ue = res_ue[i + 1]
+
                 size = int(t_ue[1])
                 
                 # ros_type
@@ -605,13 +637,17 @@ def get_types_cpp(target_paths):
                 dft_val = get_type_default_value_str(t_ue[0])
                 var_initialization = f' = {dft_val}' if (dft_val != None) else ''
                 var_declaration = f'{t_ue[0]} {v_ue}{var_initialization};\n\n\t'
-                if (('unsigned int' in t_ue[0]) or
-                    ('double' in t_ue[0]) or
-                    ('int8' in t_ue[0]) or
-                    ('int16' in t_ue[0]) or
-                    ('uint16' in t_ue[0]) or
-                    ('uint64' in t_ue[0])):
+                if t_ue[0] in BP_UNSUPPORTED_TYPES:
                     cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
+                elif 'TArray' in t_ue[0]:
+                    bp_unsupported = False
+                    for msg_type in BP_UNSUPPORTED_TYPES:
+                        if msg_type in t_ue[0]:
+                            cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
+                            bp_unsupported = True
+                            break
+                    if not bp_unsupported:
+                        cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + var_declaration
                 else:
                     cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + var_declaration
                 set_from_ros2 += setter(t_ue[0], v_ue, v_ros, size)
@@ -661,7 +697,7 @@ def is_valid_group_name(in_group_name):
     return ((in_group_name in types_cpp) and len(types_cpp[in_group_name]) >= 3)
 
 def print_group_name_info(in_group_name):
-    print(f"types_cpp[{in_group_name}] size:{len(types_cpp[in_group_name]) if (in_group_name in types_cpp) else 0}")
+    logger.warning(f"types_cpp[{in_group_name}] size:{len(types_cpp[in_group_name]) if (in_group_name in types_cpp) else 0}")
 
 # generate code
 for p in range(len(ue_paths)):
@@ -751,7 +787,7 @@ for p in range(len(ue_paths)):
                     output_h = env.get_template('Action.h').render(data=info)
                     output_cpp = env.get_template('Action.cpp').render(data=info)
                 else:
-                    print('type not found')
+                    logger.error('type not found: {}'.format(subdir))
 
                 # this should only happen if the file does not exist
                 filename=current_dir+'/ROS2'+name+subdir.title()
