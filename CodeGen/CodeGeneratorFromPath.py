@@ -3,11 +3,39 @@ import sys
 import os
 import glob
 import re
+import argparse
 
 import logging
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler("codegen_debug.log"),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+
+# default dependency pkgs. Commonly used pkgs
+# https://github.com/ros2/common_interfaces +  alpha
+BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
+DEFAULT_DEPENDENCY_PKGS = [
+    'actionlib_msgs',
+    'builtin_interfaces',
+    'diagnostic_msgs',
+    'geometry_msgs',
+    'nav_msgs',
+    'sensor_msgs',
+    'shape_msgs',
+    'std_msgs',
+    'std_srvs',
+    'stereo_msgs',
+    'trajectory_msgs',
+    'visualization_msgs',
+    'tf2_msgs',
+    'pcl_msgs',
+    'ackermann_msgs'
+]
+DEFAULT_DEPENDENCY_PKGS = [ os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in DEFAULT_DEPENDENCY_PKGS]
 
 # constants
 UE_SPECIFIC_TYPES = [
@@ -63,11 +91,13 @@ def convert_to_ue_type(t):
 # todo use dict same as type conversion
 def get_type_default_value_str(t):
     res = None
-    if 'bool' == t:
+    if 'TArray' in t:
+        res = None
+    elif 'bool' == t:
         res = 'false'
-    if 'int' in t and not 'TArray' in t:
+    elif 'int' in t:
         res = '0'
-    elif 'float' in t and not 'TArray' in t:
+    elif 'float' in t:
         res = '0.f'
     elif 'double' == t:
         res = '0.f'
@@ -102,6 +132,7 @@ def get_ue_var_name(original_names = [], is_dynamic_array = False):
         var_name = snake_to_pascal(original_names[1])
         if ('bool' == var_type):
             var_name = f'b{var_name}'
+
         return [convert_to_ue_type(var_type), var_name]
     elif len(original_names) == 3:
         res_ue = []
@@ -110,7 +141,7 @@ def get_ue_var_name(original_names = [], is_dynamic_array = False):
             is_dynamic_array_var = is_dynamic_array
             if '[]' in v[0]:
                 is_dynamic_array_var = True
-            
+
             res_ue = get_ue_var_name(v, is_dynamic_array_var)
             for i in range(0, len(res_ue), 2):
                 t_ue = res_ue[i]
@@ -118,6 +149,7 @@ def get_ue_var_name(original_names = [], is_dynamic_array = False):
                 # Type, Size, Var name (snake_case -> PascalCase)
                 final.append(t_ue)
                 final.append(f'{snake_to_pascal(original_names[1])}{v_ue}')
+
         return final
     else:
         logger.error('ERROR with ' + str(original_names) + ' (get_ue_var_name)')
@@ -479,7 +511,7 @@ def get_types(target_paths):
                 struct_type = el[len(el)-3] + '/' + remove_underscore(os.path.splitext(os.path.basename(fp))[0])
                 types.add(struct_type)
     
-    logger.debug('get types: ', types)
+    # logger.debug('get types: {}'.format(types))
 
     return types
 
@@ -601,7 +633,6 @@ def get_types_cpp(target_paths):
     types_cpp = {}
 
     for key, value in types_dict.items():
-        logger.debug('\n\nget_types_cpp: {}, {}'.format(key, value))
         cpp_type = ''
         set_ros2 = ''
         set_from_ros2 = ''
@@ -637,19 +668,22 @@ def get_types_cpp(target_paths):
                 dft_val = get_type_default_value_str(t_ue[0])
                 var_initialization = f' = {dft_val}' if (dft_val != None) else ''
                 var_declaration = f'{t_ue[0]} {v_ue}{var_initialization};\n\n\t'
+                
+                # check bp_supported or not
+                bp_supported = True
                 if t_ue[0] in BP_UNSUPPORTED_TYPES:
-                    cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
+                    bp_supported = False                    
                 elif 'TArray' in t_ue[0]:
-                    bp_unsupported = False
                     for msg_type in BP_UNSUPPORTED_TYPES:
                         if msg_type in t_ue[0]:
-                            cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
-                            bp_unsupported = True
+                            bp_supported = False
                             break
-                    if not bp_unsupported:
-                        cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + var_declaration
-                else:
+                if bp_supported:
                     cpp_type += 'UPROPERTY(EditAnywhere, BlueprintReadWrite)\n\t' + var_declaration
+                else:
+                    cpp_type += 'UPROPERTY(EditAnywhere)\n\t' + var_declaration
+
+
                 set_from_ros2 += setter(t_ue[0], v_ue, v_ros, size)
 
                 if '.data[i].' not in v_ros:
@@ -676,28 +710,53 @@ def get_types_cpp(target_paths):
 
     return types_cpp
 
+############################################
+# main process
+############################################
+
 file_loader = FileSystemLoader('templates')
 env = Environment(loader=file_loader)
 
 current_dir = os.getcwd()
 
-ros_paths = [sys.argv[1]]
-ue_paths = []
+parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
+parser.add_argument('--dependency', nargs='*', default=[], help='path to directory which include \
+    dependency of target. You can specify /opt/ros/foxy/share/ to include all installed \
+    pkgs as dependency, but it take longer to process.')
+parser.add_argument('--target', nargs='*', default=[], help='path to directory which has target msg files')
+args = parser.parse_args()
+
+
+ros_paths = DEFAULT_DEPENDENCY_PKGS.copy()
+ue_paths = DEFAULT_DEPENDENCY_PKGS.copy()
 Groups = []
-for i in range(2,len(sys.argv)):
-    ue_paths.append(sys.argv[i])
-    if '/share/' in sys.argv[i]:
-        ros_paths.append(os.path.split(os.path.dirname(sys.argv[i]))[0])
-    else:
-        ros_paths.append(sys.argv[i])
-    Groups.append(os.path.basename(os.path.dirname(sys.argv[i])))
+
+for path in args.dependency:
+    path = path.rstrip('/') #removing trailing slash
+    if path not in ros_paths:
+        ros_paths.append(path)
+
+for path in args.target:
+    path = path.rstrip('/') #removing trailing slash
+    if path not in ue_paths:
+        ue_paths.append(path)
+    if path not in ros_paths:
+        ros_paths.append(path)
+
+for path in ue_paths:
+    Groups.append(os.path.basename(path))
+
+logger.debug('ros_paths: {}'.format(ros_paths))
+logger.debug('ue_paths: {}'.format(ue_paths))
+logger.debug('Groups: {}'.format(Groups))
 
 types_cpp = get_types_cpp(ros_paths)
 def is_valid_group_name(in_group_name):
     return ((in_group_name in types_cpp) and len(types_cpp[in_group_name]) >= 3)
 
 def print_group_name_info(in_group_name):
-    logger.warning(f"types_cpp[{in_group_name}] size:{len(types_cpp[in_group_name]) if (in_group_name in types_cpp) else 0}")
+    logger.warning(f"Error in parsing msg or msg is empty. types_cpp[{in_group_name}] \
+        size:{len(types_cpp[in_group_name]) if (in_group_name in types_cpp) else 0}")
 
 # generate code
 for p in range(len(ue_paths)):
@@ -705,8 +764,7 @@ for p in range(len(ue_paths)):
         if os.path.exists(ue_paths[p]+'/'+subdir):
             os.chdir(ue_paths[p]+'/'+subdir)
             for file in glob.glob('*.'+subdir):
-                package_name = os.path.split(os.path.split(ue_paths[p])[0])[1]
-                #print(package_name + '/' + file)
+                package_name = os.path.basename(ue_paths[p])
 
                 if check_deprecated(ue_paths[p], subdir, file):
                     continue
