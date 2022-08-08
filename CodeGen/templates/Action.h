@@ -201,6 +201,9 @@ public:
   	UFUNCTION(BlueprintCallable)
 	void GetFeedback(F{{data.StructName}}FeedbackMessage& Feedback) const;
 	
+  	UFUNCTION(BlueprintCallable)
+	void SetGoalIdToFeedback(F{{data.StructName}}FeedbackMessage& Feedback);
+
 	virtual void* GetGoalRequest() override;
 	virtual void* GetGoalResponse() override;
 	virtual void* GetResultRequest() override;

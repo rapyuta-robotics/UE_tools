@@ -79,6 +79,13 @@ void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}FeedbackMessag
     Feedback.SetFromROS2({{data.NameCap}}_feedback_message);
 }
 
+void UROS2{{data.NameCap}}Action::SetGoalIdToFeedback(F{{data.StructName}}FeedbackMessage& Feedback)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        Feedback.GoalId[i] = {{data.NameCap}}_goal_request.goal_id.uuid[i];
+    }
+}
 
 void* UROS2{{data.NameCap}}Action::GetGoalRequest()
 {

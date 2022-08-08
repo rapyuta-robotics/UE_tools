@@ -45,8 +45,8 @@ for type_name in ['Action','Srv','Msg']:
 
 #copy header and library
 for ros_pkg_name in args.pkgs:
-    ue_third_party_path = os.path.join(ue_project_src_path, 'ThirdParty/ros', ros_pkg_name)
-    ue_third_party_include_path = os.path.join(ue_third_party_path, 'include')
+    ue_third_party_path = os.path.join(ue_project_src_path, 'ThirdParty/ros')
+    ue_third_party_include_path = os.path.join(ue_third_party_path, 'include', ros_pkg_name)
     ue_third_party_lib_path = os.path.join(ue_third_party_path, 'lib')
 
     ros_include_path = os.path.join(args.ros_path, 'include', ros_pkg_name)
