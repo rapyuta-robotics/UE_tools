@@ -15,7 +15,7 @@
 #include "ROS2{{data.NameCap}}Action.generated.h"
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}SendGoalRequest
+struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalRequest
 {
 	GENERATED_BODY()
 
@@ -45,7 +45,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}SendGoalResponse
+struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalResponse
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}GetResultRequest
+struct {{data.ModuleAPI}} F{{data.StructName}}GetResultRequest
 {
 	GENERATED_BODY()
 
@@ -101,7 +101,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}GetResultResponse
+struct {{data.ModuleAPI}} F{{data.StructName}}GetResultResponse
 {
 	GENERATED_BODY()
 
@@ -124,7 +124,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}FeedbackMessage
+struct {{data.ModuleAPI}} F{{data.StructName}}FeedbackMessage
 {
 	GENERATED_BODY()
 
@@ -160,7 +160,7 @@ public:
 };
 
 UCLASS()
-class RCLUE_API UROS2{{data.NameCap}}Action : public UROS2GenericAction
+class {{data.ModuleAPI}} UROS2{{data.NameCap}}Action : public UROS2GenericAction
 {
 	GENERATED_BODY()
 	
