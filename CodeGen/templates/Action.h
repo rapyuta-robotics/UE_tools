@@ -20,7 +20,9 @@ struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalRequest
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
+
 	{{data.GoalTypes}}
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
@@ -75,6 +77,7 @@ struct {{data.ModuleAPI}} F{{data.StructName}}GetResultRequest
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
     F{{data.StructName}}GetResultRequest()
@@ -106,6 +109,7 @@ struct {{data.ModuleAPI}} F{{data.StructName}}GetResultResponse
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	int8 Status = 0;
 
 	{{data.ResultTypes}}
@@ -129,7 +133,9 @@ struct {{data.ModuleAPI}} F{{data.StructName}}FeedbackMessage
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
+
 	{{data.FeedbackTypes}}
 
 
