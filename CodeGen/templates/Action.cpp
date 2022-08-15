@@ -28,57 +28,64 @@ void UROS2{{data.NameCap}}Action::Fini()
     Super::Fini();
 }
 
-void UROS2{{data.NameCap}}Action::SetGoalRequest(const F{{data.StructName}}_SendGoal_Request& Goal)
+void UROS2{{data.NameCap}}Action::SetGoalRequest(const F{{data.StructName}}SendGoalRequest& Goal)
 {
     Goal.SetROS2({{data.NameCap}}_goal_request);
 }
 
-void UROS2{{data.NameCap}}Action::GetGoalRequest(F{{data.StructName}}_SendGoal_Request& Goal) const
+void UROS2{{data.NameCap}}Action::GetGoalRequest(F{{data.StructName}}SendGoalRequest& Goal) const
 {
     Goal.SetFromROS2({{data.NameCap}}_goal_request);
 }
 
-void UROS2{{data.NameCap}}Action::SetGoalResponse(const F{{data.StructName}}_SendGoal_Response& Goal)
+void UROS2{{data.NameCap}}Action::SetGoalResponse(const F{{data.StructName}}SendGoalResponse& Goal)
 {
     Goal.SetROS2({{data.NameCap}}_goal_response);
 }
 
-void UROS2{{data.NameCap}}Action::GetGoalResponse(F{{data.StructName}}_SendGoal_Response& Goal) const
+void UROS2{{data.NameCap}}Action::GetGoalResponse(F{{data.StructName}}SendGoalResponse& Goal) const
 {
     Goal.SetFromROS2({{data.NameCap}}_goal_response);
 }
 
-void UROS2{{data.NameCap}}Action::SetResultRequest(const F{{data.StructName}}_GetResult_Request& Result)
+void UROS2{{data.NameCap}}Action::SetResultRequest(const F{{data.StructName}}GetResultRequest& Result)
 {
     Result.SetROS2({{data.NameCap}}_result_request);
 }
 
-void UROS2{{data.NameCap}}Action::GetResultRequest(F{{data.StructName}}_GetResult_Request& Result) const
+void UROS2{{data.NameCap}}Action::GetResultRequest(F{{data.StructName}}GetResultRequest& Result) const
 {
     Result.SetFromROS2({{data.NameCap}}_result_request);
 }
 
-void UROS2{{data.NameCap}}Action::SetResultResponse(const F{{data.StructName}}_GetResult_Response& Result)
+void UROS2{{data.NameCap}}Action::SetResultResponse(const F{{data.StructName}}GetResultResponse& Result)
 {
     Result.SetROS2({{data.NameCap}}_result_response);
 }
 
-void UROS2{{data.NameCap}}Action::GetResultResponse(F{{data.StructName}}_GetResult_Response& Result) const
+void UROS2{{data.NameCap}}Action::GetResultResponse(F{{data.StructName}}GetResultResponse& Result) const
 {
     Result.SetFromROS2({{data.NameCap}}_result_response);
 }
 
 
-void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}}_FeedbackMessage& Feedback)
+void UROS2{{data.NameCap}}Action::SetFeedback(const F{{data.StructName}}FeedbackMessage& Feedback)
 {
     Feedback.SetROS2({{data.NameCap}}_feedback_message);
 }
 
-void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}_FeedbackMessage& Feedback) const
+void UROS2{{data.NameCap}}Action::GetFeedback(F{{data.StructName}}FeedbackMessage& Feedback) const
 {
     Feedback.SetFromROS2({{data.NameCap}}_feedback_message);
 }
 
+void UROS2{{data.NameCap}}Action::SetGoalIdToFeedback(F{{data.StructName}}FeedbackMessage& Feedback)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        Feedback.GoalId[i] = {{data.NameCap}}_goal_request.goal_id.uuid[i];
+    }
+}
 
 void* UROS2{{data.NameCap}}Action::GetGoalRequest()
 {

@@ -15,19 +15,19 @@
 #include "ROS2{{data.NameCap}}Action.generated.h"
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}SendGoalRequest
+struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalRequest
 {
 	GENERATED_BODY()
 
 public:
-  	TArray<uint, TFixedAllocator<16>> goal_id;
+  	TArray<uint, TFixedAllocator<16>> GoalId;
 	{{data.GoalTypes}}
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = in_ros_data.goal_id.uuid[i];
+			GoalId[i] = in_ros_data.goal_id.uuid[i];
 		}
 
     	{{data.GoalSetFromROS2}}
@@ -37,7 +37,7 @@ public:
 	{
 		for (int i=0; i<16; i++)
 		{
-			out_ros_data.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = GoalId[i];
 		}
 
     	{{data.GoalSetROS2}}
@@ -45,43 +45,48 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}SendGoalResponse
+struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalResponse
 {
 	GENERATED_BODY()
 
 public:
-	bool accepted;
-	int stamp_sec;
-	uint stamp_nanosec;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bAccepted = false;
 
-	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& in_ros_data)
-	{
-    	accepted = in_ros_data.accepted;
-		stamp_sec = in_ros_data.stamp.sec;
-		stamp_nanosec = in_ros_data.stamp.nanosec;
-	}
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Stamp = 0.f;
 
-	void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& out_ros_data) const
-	{
-    	out_ros_data.accepted = accepted;
-		out_ros_data.stamp.sec = stamp_sec;
-		out_ros_data.stamp.nanosec = stamp_nanosec;
-	}
+    void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& in_ros_data)
+    {
+        Accepted = in_ros_data.accepted;
+        Stamp = UROS2Utils::ROSStampToFloat(in_ros_data.stamp);
+    }
+
+    void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& out_ros_data) const
+    {
+        out_ros_data.accepted = Accepted;
+        out_ros_data.stamp = UROS2Utils::FloatToROSStamp(Stamp);
+    }
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}GetResultRequest
+struct {{data.ModuleAPI}} F{{data.StructName}}GetResultRequest
 {
 	GENERATED_BODY()
 
 public:
-  	TArray<uint, TFixedAllocator<16>> goal_id;
+  	TArray<uint, TFixedAllocator<16>> GoalId;
+
+    F{{data.StructName}}GetResultRequest()
+    {
+        GoalId.Init(0, 16);
+    }
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = in_ros_data.goal_id.uuid[i];
+			GoalId[i] = in_ros_data.goal_id.uuid[i];
 		}
 
 	}
@@ -90,47 +95,54 @@ public:
 	{
 		for (int i=0; i<16; i++)
 		{
-			out_ros_data.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = GoalId[i];
 		}
 	}
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}GetResultResponse
+struct {{data.ModuleAPI}} F{{data.StructName}}GetResultResponse
 {
 	GENERATED_BODY()
 
 public:
-	int8 status;
+	int8 Status = 0;
+
 	{{data.ResultTypes}}
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Response& in_ros_data)
 	{
-		status = in_ros_data.status;
+		Status = in_ros_data.status;
     	{{data.ResultSetFromROS2}}
 	}
 
 	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& out_ros_data) const
 	{
-		out_ros_data.status = status;
+		out_ros_data.status = Status;
     	{{data.ResultSetROS2}}
 	}
 };
 
 USTRUCT(Blueprintable)
-struct RCLUE_API F{{data.StructName}}FeedbackMessage
+struct {{data.ModuleAPI}} F{{data.StructName}}FeedbackMessage
 {
 	GENERATED_BODY()
 
 public:
-  	TArray<uint, TFixedAllocator<16>> goal_id;
+  	TArray<uint, TFixedAllocator<16>> GoalId;
 	{{data.FeedbackTypes}}
+
+
+    F{{data.StructName}}FeedbackMessage()
+    {
+        GoalId.Init(0, 16);
+    }
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
 		{
-			goal_id[i] = in_ros_data.goal_id.uuid[i];
+			GoalId[i] = in_ros_data.goal_id.uuid[i];
 		}
 
     	{{data.FeedbackSetFromROS2}}
@@ -140,7 +152,7 @@ public:
 	{
 		for (int i=0; i<16; i++)
 		{
-			out_ros_data.goal_id.uuid[i] = goal_id[i];
+			out_ros_data.goal_id.uuid[i] = GoalId[i];
 		}
 		
     	{{data.FeedbackSetROS2}}
@@ -148,7 +160,7 @@ public:
 };
 
 UCLASS()
-class RCLUE_API UROS2{{data.NameCap}}Action : public UROS2GenericAction
+class {{data.ModuleAPI}} UROS2{{data.NameCap}}Action : public UROS2GenericAction
 {
 	GENERATED_BODY()
 	
@@ -183,14 +195,15 @@ public:
   	UFUNCTION(BlueprintCallable)
 	void GetResultResponse(F{{data.StructName}}GetResultResponse& Result) const;
 
-
-
   	UFUNCTION(BlueprintCallable)
 	void SetFeedback(const F{{data.StructName}}FeedbackMessage& Feedback);
 
   	UFUNCTION(BlueprintCallable)
 	void GetFeedback(F{{data.StructName}}FeedbackMessage& Feedback) const;
 	
+  	UFUNCTION(BlueprintCallable)
+	void SetGoalIdToFeedback(F{{data.StructName}}FeedbackMessage& Feedback);
+
 	virtual void* GetGoalRequest() override;
 	virtual void* GetGoalResponse() override;
 	virtual void* GetResultRequest() override;
@@ -198,9 +211,9 @@ public:
 	virtual void* GetFeedbackMessage() override;
 
 private:
-	{{data.Group}}__action__{{data.NameCap}}SendGoalRequest {{data.NameCap}}_goal_request;
-	{{data.Group}}__action__{{data.NameCap}}SendGoalResponse {{data.NameCap}}_goal_response;
-	{{data.Group}}__action__{{data.NameCap}}GetResultRequest {{data.NameCap}}_result_request;
-	{{data.Group}}__action__{{data.NameCap}}GetResultResponse {{data.NameCap}}_result_response;
-	{{data.Group}}__action__{{data.NameCap}}FeedbackMessage {{data.NameCap}}_feedback_message;
+	{{data.Group}}__action__{{data.NameCap}}_SendGoal_Request {{data.NameCap}}_goal_request;
+	{{data.Group}}__action__{{data.NameCap}}_SendGoal_Response {{data.NameCap}}_goal_response;
+	{{data.Group}}__action__{{data.NameCap}}_GetResult_Request {{data.NameCap}}_result_request;
+	{{data.Group}}__action__{{data.NameCap}}_GetResult_Response {{data.NameCap}}_result_response;
+	{{data.Group}}__action__{{data.NameCap}}_FeedbackMessage {{data.NameCap}}_feedback_message;
 };
