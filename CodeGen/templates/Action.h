@@ -54,7 +54,7 @@ public:
     bool Accepted;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Stamp;
+    float Stamp = 0.f;
 
     void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& in_ros_data)
     {
