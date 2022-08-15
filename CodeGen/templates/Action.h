@@ -106,7 +106,7 @@ struct {{data.ModuleAPI}} F{{data.StructName}}GetResultResponse
 	GENERATED_BODY()
 
 public:
-	int8 Status;
+	int8 Status = 0;
 
 	{{data.ResultTypes}}
 
