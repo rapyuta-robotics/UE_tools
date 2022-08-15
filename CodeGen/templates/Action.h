@@ -51,7 +51,7 @@ struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalResponse
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    bool Accepted;
+    bool bAccepted = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float Stamp = 0.f;
