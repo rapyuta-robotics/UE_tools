@@ -1,2 +1,4 @@
 .vscode/
 CodeGen/.vscode/
+CodeGen/*.h
+CodeGen/*.cpp
