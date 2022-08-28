@@ -22,11 +22,15 @@ logger = logging.getLogger(__name__)
 
 # default dependency pkgs. Commonly used pkgs
 # https://github.com/ros2/common_interfaces +  alpha
-BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
+# BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
+BASE_ROS_INSTALL_PATH = os.path.join(os.getcwd(), '../BuildROS2/ros2_ws/install')
 DEFAULT_DEPENDENCY_PKGS = [
+    'action_msgs',
     'actionlib_msgs',
     'builtin_interfaces',
+    'unique_identifier_msgs',
     'diagnostic_msgs',
+    'rosgraph_msgs',
     'geometry_msgs',
     'nav_msgs',
     'sensor_msgs',
@@ -38,7 +42,9 @@ DEFAULT_DEPENDENCY_PKGS = [
     'visualization_msgs',
     'tf2_msgs',
     'pcl_msgs',
-    'ackermann_msgs'
+    # 'ackermann_msgs',
+    'example_interfaces',
+    'ue_msgs'
 ]
 DEFAULT_DEPENDENCY_PKGS = [ os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in DEFAULT_DEPENDENCY_PKGS]
 

@@ -2,3 +2,4 @@
 CodeGen/.vscode/
 CodeGen/*.h
 CodeGen/*.cpp
+BuildROS2/ros2_ws/

@@ -1,0 +1,13 @@
+diff --git a/src/find_library.cpp b/src/find_library.cpp
+index 4fe18f2..4042980 100644
+--- a/src/find_library.cpp
++++ b/src/find_library.cpp
+@@ -67,7 +67,7 @@ std::string find_library_path(const std::string & library_name)
+       return path;
+     }
+   }
+-  return "";
++  return "lib" + library_name + ".so";
+ }
+ 
+ }  // namespace rcpputils
