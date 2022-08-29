@@ -4,33 +4,6 @@ import os
 import shutil
 import glob
 
-# default dependency pkgs. Commonly used pkgs
-# https://github.com/ros2/common_interfaces +  alpha
-# BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/'
-BASE_ROS_INSTALL_PATH = os.path.join(os.getcwd(), '../BuildROS2/ros2_ws/install')
-DEFAULT_DEPENDENCY_PKGS = [
-    'action_msgs',
-    'actionlib_msgs',
-    'builtin_interfaces',
-    'unique_identifier_msgs',
-    'diagnostic_msgs',
-    'rosgraph_msgs',
-    'geometry_msgs',
-    'nav_msgs',
-    'sensor_msgs',
-    'shape_msgs',
-    'std_msgs',
-    'std_srvs',
-    'stereo_msgs',
-    'trajectory_msgs',
-    'visualization_msgs',
-    'tf2_msgs',
-    'pcl_msgs',
-    # 'ackermann_msgs',
-    'example_interfaces',
-    'ue_msgs'
-]
-
 # temporary black list msgs which can't be parsed properly
 BLACK_LIST = [
     "ROS2WStringMsg", # can't handle wstring in UE.

@@ -771,7 +771,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
     parser.add_argument('--module', default='RCLUE', help='UE module name used in class/struct definition.')
     parser.add_argument('--dependency', nargs='*', default=[], help='path to directory which include \
-        dependency of target. You can specify /opt/ros/foxy/share/ to include all installed \
+        dependency of target. You can specify UE_tools/BuildROS2/ros2_ws to include all build \
         pkgs as dependency, but it take longer to process.')
     parser.add_argument('--target', nargs='*', default=[], help='path to directory which has target msg files')
     args = parser.parse_args()
