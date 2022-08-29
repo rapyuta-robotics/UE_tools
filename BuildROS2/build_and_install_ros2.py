@@ -71,8 +71,10 @@ def build_ros2(
     GrabIncludes(rosInstall, pluginPathRosInclude, allowed_spaces)
     CleanIncludes(pluginPathRosInclude, not_allowed_spaces)
 
-    print('Applying includes patch...')
-    os.system('git apply patches/rcutils.patch')
+    if buildType == 'base':
+        print('Applying includes patch...')
+        os.system('cd ' + pluginPath + '; git apply ' + 
+                    os.path.join(os.getcwd(), 'patches/rcutils.patch'))
 
     print('Grabbing libs...')
     GrabLibs(rosInstall, pluginPathRosLib, allowed_spaces)

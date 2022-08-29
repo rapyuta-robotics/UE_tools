@@ -40,7 +40,7 @@ def GetLibs(folder):
 
     for dirpath,subdirs,files in os.walk(folder):
         for file in files:
-            if file.endswith('.so') or '.so.' in file:
+            if file.startswith('lib') and (file.endswith('.so') or '.so.' in file):
                 fullName = os.path.join(dirpath, file)
                 libs.append(fullName)
     
@@ -80,7 +80,7 @@ def GrabLibs(folderFrom, folderTo, allowed_spaces):
 
     for dirpath,subdirs,files in os.walk(folderFrom):
         for file in files:
-           if (file.endswith('.so') or '.so.' or'.cpython-38-x86_64-linux-gnu' in file) and \
+           if file.startswith('lib') and (file.endswith('.so') or '.so.' in file) and \
                 any(elem in file for elem in allowed_spaces):
                 filesCount += 1
                 fileFrom = os.path.join(dirpath, file)
