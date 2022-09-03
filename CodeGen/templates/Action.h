@@ -23,6 +23,11 @@ public:
   	TArray<uint, TFixedAllocator<16>> GoalId;
 	{{data.GoalTypes}}
 
+	F{{data.StructName}}SendGoalRequest()
+    {
+        UROS2Utils::GenerateRandomUUID16(GoalId);
+    }
+
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
