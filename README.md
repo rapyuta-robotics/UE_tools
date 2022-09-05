@@ -80,7 +80,7 @@ You can find changes in BuildROS2/patches
 ## CodeGen
 Python script to generate UE4 .h and .cpp files for UnrealEngine to interface with ROS2 messages.
 
-\* Based on Jinja2 to generatee msg
+\* Based on Jinja2 to generate msg
 
 \* Ignores message types deprecated in Foxy.
 
