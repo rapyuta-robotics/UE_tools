@@ -118,7 +118,7 @@ Python script to generate UE4 .h and .cpp files for UnrealEngine to interface wi
     \* Default dependencies and targets are defined near the top of files.
 
 
-    \* Please check [limitiations](#limitation) as well.
+    \* Please check [limitations](#limitation) as well.
 
 - **post_generate.py**: 
 
