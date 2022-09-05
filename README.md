@@ -124,7 +124,7 @@ Python script to generate UE4 .h and .cpp files for UnrealEngine to interface wi
 
     Copy generated .h and cpp to target UnrealEngine project folder such as **turtlebot3-UE/Plugin/rclUE/Source/Thirdparty/ros**. 
 
-    \* Black list is deifined near the beginning of the script which are not copied to Unreal project since there are [Limitiations](#limitation)
+    \* Black list is defined near the beginning of the script which are not copied to Unreal project since there are [Limitations](#limitation)
 
 ### Limitation
 - only works with ROS2 message interface (in particular, ROS had built-in data types, such as `time`, defined in libraries and ROS2 now implements those as messages)
