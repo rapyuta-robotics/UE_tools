@@ -22,11 +22,15 @@ logger = logging.getLogger(__name__)
 
 # default dependency pkgs. Commonly used pkgs
 # https://github.com/ros2/common_interfaces +  alpha
-BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
+# BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
+BASE_ROS_INSTALL_PATH = os.path.join(os.getcwd(), '../BuildROS2/ros2_ws/install')
 DEFAULT_DEPENDENCY_PKGS = [
+    'action_msgs',
     'actionlib_msgs',
     'builtin_interfaces',
+    'unique_identifier_msgs',
     'diagnostic_msgs',
+    'rosgraph_msgs',
     'geometry_msgs',
     'nav_msgs',
     'sensor_msgs',
@@ -38,7 +42,9 @@ DEFAULT_DEPENDENCY_PKGS = [
     'visualization_msgs',
     'tf2_msgs',
     'pcl_msgs',
-    'ackermann_msgs'
+    # 'ackermann_msgs',
+    'example_interfaces',
+    'ue_msgs'
 ]
 DEFAULT_DEPENDENCY_PKGS = [ os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in DEFAULT_DEPENDENCY_PKGS]
 
@@ -765,7 +771,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
     parser.add_argument('--module', default='RCLUE', help='UE module name used in class/struct definition.')
     parser.add_argument('--dependency', nargs='*', default=[], help='path to directory which include \
-        dependency of target. You can specify /opt/ros/foxy/share/ to include all installed \
+        dependency of target. You can specify UE_tools/BuildROS2/ros2_ws to include all build \
         pkgs as dependency, but it take longer to process.')
     parser.add_argument('--target', nargs='*', default=[], help='path to directory which has target msg files')
     args = parser.parse_args()

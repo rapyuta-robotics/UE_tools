@@ -1,5 +1,8 @@
 # Changelog for UE_tools repository
 
+## 0.0.3 ##
+* Refactor to include ros2 lib build scripts #7
+
 ## 0.0.2 ##
 CodeGeneratorFromPath.py
 * Remove all '_' in outputted UE struct type name

@@ -25,6 +25,11 @@ public:
 
 	{{data.GoalTypes}}
 
+	F{{data.StructName}}SendGoalRequest()
+    {
+        UROS2Utils::GenerateRandomUUID16(GoalId);
+    }
+
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
 	{
 		for (int i=0; i<16; i++)
@@ -60,13 +65,13 @@ public:
 
     void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& in_ros_data)
     {
-        Accepted = in_ros_data.accepted;
+        bAccepted = in_ros_data.accepted;
         Stamp = UROS2Utils::ROSStampToFloat(in_ros_data.stamp);
     }
 
     void SetROS2({{data.Group}}__action__{{data.NameCap}}_SendGoal_Response& out_ros_data) const
     {
-        out_ros_data.accepted = Accepted;
+        out_ros_data.accepted = bAccepted;
         out_ros_data.stamp = UROS2Utils::FloatToROSStamp(Stamp);
     }
 };
