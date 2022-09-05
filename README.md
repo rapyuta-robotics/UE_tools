@@ -113,7 +113,7 @@ Python script to generate UE4 .h and .cpp files for UnrealEngine to interface wi
     
     All properties can be accessible from C++. Not all properties but only Blueprint compatible type member can be accessible from Blueprint.
 
-    If your custom msg need other msg dependency, you need to specify that dependnecy from arg.
+    If your custom msg need other msg dependency, you need to specify that dependency from arg.
 
     \* Default dependencies and targets are defined near the top of files.
 
