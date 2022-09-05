@@ -111,7 +111,7 @@ Python script to generate UE4 .h and .cpp files for UnrealEngine to interface wi
 
     Generate .h and cpp files for UnrealEngine project from msg/srv/action definitions. Generated class/struct can be used from UnrealEngine C++ and Blueprint. 
     
-    All properties can be accessible from C++. Not all properties but only Blueprint comaptible type member can be accesible from  Blueprint.
+    All properties can be accessible from C++. Not all properties but only Blueprint compatible type member can be accessible from Blueprint.
 
     If your custom msg need other msg dependency, you need to specify that dependnecy from arg.
 
