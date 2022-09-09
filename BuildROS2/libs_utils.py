@@ -215,3 +215,7 @@ def CheckLibs(folderName):
             libsSet.add(lib)
 
     print('Error. Duplications were found') if len(libs) != len(libsSet) else print('All ok. Duplications are not found')
+
+def LocalizeLibSymbols(libsFolderPath):
+    RenameLibsWithVersion(libsFolderPath)
+    SetRPATH(libsFolderPath)
