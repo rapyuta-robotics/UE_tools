@@ -762,35 +762,38 @@ def get_types_cpp(target_paths):
 # main process
 ############################################
 
-if __name__ == "__main__":
+def codegen(module, dependency, target, ue_target_ros_wrapper_path):
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
-
     current_dir = os.getcwd()
 
-    parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
-    parser.add_argument('--module', default='RCLUE', help='UE module name used in class/struct definition.')
-    parser.add_argument('--dependency', nargs='*', default=[], help='path to directory which include \
-        dependency of target. You can specify UE_tools/BuildROS2/ros2_ws to include all build \
-        pkgs as dependency, but it take longer to process.')
-    parser.add_argument('--target', nargs='*', default=[], help='path to directory which has target msg files')
-    args = parser.parse_args()
+    # cleanup
+    os.system('rm *.h')
+    os.system('rm *.cpp')
 
-    module_api = args.module.upper() + '_API'
+    print(module, dependency, target, ue_target_ros_wrapper_path)
+
+    module_api = module.upper() + '_API'
+    header_path = ue_target_ros_wrapper_path
+    if len(header_path) > 0 and header_path[-1] != '/':
+        header_path += '/'
 
     ros_paths = DEFAULT_DEPENDENCY_PKGS.copy()
-    ue_paths = DEFAULT_DEPENDENCY_PKGS.copy()
     groups = []
 
-    for path in args.dependency:
+    # defautl is same as dependency
+    if target is None:
+        ue_paths = DEFAULT_DEPENDENCY_PKGS.copy()
+    else:
+        ue_paths = [os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in target]
+
+    for path in dependency:
         path = path.rstrip('/') #removing trailing slash
         if path not in ros_paths:
             ros_paths.append(path)
 
-    for path in args.target:
+    for path in ue_paths:
         path = path.rstrip('/') #removing trailing slash
-        if path not in ue_paths:
-            ue_paths.append(path)
         if path not in ros_paths:
             ros_paths.append(path)
 
@@ -820,13 +823,14 @@ if __name__ == "__main__":
 
         for subdir in SUB_DIRS:
             file_type = os.path.dirname(subdir) if '\/' in subdir else subdir
+            print('INPUT ROS2 DIR:' + subdir_path + ' -> Output DIR:' + current_dir)
             for file_path in Path(subdir_path).rglob(f'*.{file_type}'):
                 name = Path(file_path).stem
                 # Not accept ROS file name having '_'
                 if('_' in name):
                     continue
 
-                print('INPUT ROS2 FILE', file_path)
+                logger.info('INPUT ROS2 FILE:' + os.path.basename(file_path))
                 if check_ros_deprecated(file_path):
                     continue
 
@@ -842,6 +846,7 @@ if __name__ == "__main__":
                 info['NameCap'] = name
                 info['StructName'] = 'ROS' + info['NameCap']
                 info['ModuleAPI'] = module_api
+                info['HeaderPath'] = header_path
 
                 p_group_name = f"{groups[p]}/{name}"
                 group_name = p_group_name
@@ -923,7 +928,8 @@ if __name__ == "__main__":
 
                 # this should only happen if the file does not exist
                 output_filename = f'{current_dir}/ROS2{name}{file_type.title()}'
-                print('OUTPUT UE FILE', output_filename)
+                logger.info('OUTPUT UE FILE:' + os.path.basename(output_filename))
+                print(' Generate: ' +  os.path.basename(file_path) + ' -> ' + os.path.basename(output_filename) )
                 file_h = open(f'{output_filename}.h', 'w')
                 file_cpp = open(f'{output_filename}.cpp', 'w')
 
@@ -932,3 +938,21 @@ if __name__ == "__main__":
 
                 file_h.close()
                 file_cpp.close()
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
+    parser.add_argument('--module', default='RCLUE', help='UE module name used in class/struct definition.')
+    parser.add_argument('--dependency', nargs='*', default=[], help='path to directory which include \
+        dependency of target. You can specify UE_tools/BuildROS2/ros2_ws to include all build \
+        pkgs as dependency, but it take longer to process.')
+    parser.add_argument('--target', nargs='*', help='path to directory which has target msg files')
+    parser.add_argument('--ue_target_ros_wrapper_path', default='', help='path to directory which has header files')
+    args = parser.parse_args()
+
+    codegen(
+        module = args.module,
+        dependency = args.dependency,
+        target = args.target,
+        ue_target_ros_wrapper_path = args.ue_target_ros_wrapper_path
+    )
