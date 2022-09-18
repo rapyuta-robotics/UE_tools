@@ -3,22 +3,34 @@
 
 #pragma once
 
+// UE
 #include <CoreMinimal.h>
 
+// ROS
 #include "{{data.Group}}/msg/{{data.Name}}.h"
 
+// rclUE
 #include "Msgs/ROS2GenericMsg.h"
 #include "rclcUtilities.h"
 
-#include "ROS2{{data.NameCap}}Msg.generated.h"
+// Generated Msg/Srv/Action(can be empty)
+{{data.Headers}}
+
+// Generated
+#include "ROS2{{data.UEName}}.generated.h"
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}
+struct {{data.ModuleAPI}} FROS{{data.UEName}}
 {
 	GENERATED_BODY()
 
 public:
 	{{data.Types}}
+
+	FROS{{data.UEName}}()
+	{
+		{{data.Constructor}}
+	}
 
 	void SetFromROS2(const {{data.Group}}__msg__{{data.NameCap}}& in_ros_data)
 	{
@@ -32,7 +44,7 @@ public:
 };
 
 UCLASS()
-class {{data.ModuleAPI}} UROS2{{data.NameCap}}Msg : public UROS2GenericMsg
+class {{data.ModuleAPI}} UROS2{{data.UEName}}Msg : public UROS2GenericMsg
 {
 	GENERATED_BODY()
 
@@ -43,10 +55,10 @@ public:
 	virtual const rosidl_message_type_support_t* GetTypeSupport() const override;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetMsg(const F{{data.StructName}}& Input);
+	void SetMsg(const FROS{{data.UEName}}& Input);
 	
   	UFUNCTION(BlueprintCallable)
-	void GetMsg(F{{data.StructName}}& Output) const;
+	void GetMsg(FROS{{data.UEName}}& Output) const;
 	
 	virtual void* Get() override;
 

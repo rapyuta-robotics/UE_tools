@@ -79,9 +79,9 @@ if __name__ == '__main__':
                 not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES
                 pkgs = ['ue_msgs']
             elif args.type == 'pkgs':
-                allowed_spaces = ros_pkgs
+                allowed_spaces = ros_pkgs.keys()
                 not_allowed_spaces = []
-                pkgs = ros_pkgs
+                pkgs = ros_pkgs.keys()
             
             build_ros2(
                 UEPath = os.path.join(home, config['args']['ue_path']),
@@ -102,15 +102,21 @@ if __name__ == '__main__':
             sys.path.append(os.getcwd())
             import CodeGen.gen_ue_from_ros as cg
             import CodeGen.post_generate as pg
+
+            black_list = []
+            if 'black_list_msgs' in config:
+                black_list = config['black_list_msgs']
             
-            ue_target_ros_wrapper_path = config['args']['ue_target_ros_wrapper_path']
-            
+            dependency = cg.DEFAULT_DEPENDENCY_PKGS
+            if 'dependency' in config:
+                dependency = config['dependency']
+
             # generate cpp and h codes
             cg.codegen(
                 module = pluginName,
-                dependency = [],
+                dependency = dependency,
                 target = ros_pkgs,
-                ue_target_ros_wrapper_path = ue_target_ros_wrapper_path
+                name_mapping = config['name_mapping']
             )
             
             # post generate. copy generated code to ue project
@@ -118,6 +124,5 @@ if __name__ == '__main__':
                 ue_project_path = projectPath, 
                 ue_plugin_name = pluginName, 
                 ue_plugin_folder_name = pluginFolderName, 
-                ue_target_ros_wrapper_path = ue_target_ros_wrapper_path,
-                black_list = config['black_list_msgs']
+                black_list = black_list
             )

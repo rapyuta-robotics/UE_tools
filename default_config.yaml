@@ -4,39 +4,65 @@ args: #path is relative from home
   ue_plugin_name: rclUE 
   ue_plugin_folder_name: rclUE
   ue_target_3rd_name: ros # sub dir name under ThirdParty
-  ue_target_ros_wrapper_path: '' # sub dir name under Source/<plugin name>/Public or Private.
 
 # build and code gen target msgs
+# pkgs and prefix for class
 target_pkgs: 
-  - 'action_msgs'
-  - 'actionlib_msgs'
-  - 'builtin_interfaces'
-  - 'unique_identifier_msgs'
-  - 'diagnostic_msgs'
-  - 'rosgraph_msgs'
-  - 'geometry_msgs'
-  - 'nav_msgs'
-  - 'sensor_msgs'
-  - 'shape_msgs'
-  - 'std_msgs'
-  - 'std_srvs'
-  - 'stereo_msgs'
-  - 'trajectory_msgs'
-  - 'visualization_msgs'
-  - 'tf2_msgs'
-  - 'pcl_msgs'
-  # 'ackermann_msgs'
-  - 'example_interfaces'
-  - 'ue_msgs'
+  action_msgs: ''
+  actionlib_msgs: ''
+  builtin_interfaces: ''
+  unique_identifier_msgs: ''
+  diagnostic_msgs: ''
+  rosgraph_msgs: ''
+  geometry_msgs: ''
+  nav_msgs: ''
+  sensor_msgs: ''
+  shape_msgs: ''
+  std_msgs: ''
+  std_srvs: 'StdSrv'
+  stereo_msgs: ''
+  trajectory_msgs: ''
+  visualization_msgs: ''
+  tf2_msgs: ''
+  pcl_msgs: ''
+  #ackermann_msgs: ''
+  example_interfaces: ''
+  ue_msgs: ''
+
+name_mapping:
+  Covariance: 'Cov'
+  Accel: 'Acc'
+  Vector: 'Vec'
+  Quaternion: 'Quat'
+  Trajectory: 'Traj'
+  Transform: 'TF'
+  Compressed: 'Comp'
+  Error: 'Err'
+  Diagnostics: 'Diag'
+  MultiArray: 'MA'
+  Dimension: 'Dim'
+  With: ''
+  Destination: 'Dest'
+  Reservation: 'Reserv'
+  Exception: 'Except'
+  Config: 'Conf'
+  InteractiveMarker: 'IM'
+  Control: 'Ctrl'
+  Request: 'Req'
+  Response: 'Res'
+  Message: 'Msg'
+  String: 'Str'
+  Image: 'Img'
+  Odometry: 'Odom'
 
 
 # msgs which is not copied to project.
 black_list_msgs:
-  - 'ROS2WStringMsg' # can't handle wstring in UE.
-  #
-  # array parser issue
-  - 'ROS2CancelGoalSrv'
-  - 'ROS2MeshMsg'
-  - 'ROS2SolidPrimitiveMsg'
-  #
-  - 'ROS2TFMessageMsg' # memcpy/free issues. fixed version in rclUE but can't autogenerate.    
+  - 'ROS2WStr' # can't handle wstring in UE.
+  # #
+  # # array parser issue
+  # - 'ROS2CancelGoalSrv'
+  # - 'ROS2MeshMsg'
+  # - 'ROS2SolidPrimitiveMsg'
+  # #
+  # - 'ROS2TFMessageMsg' # memcpy/free issues. fixed version in rclUE but can't autogenerate.    

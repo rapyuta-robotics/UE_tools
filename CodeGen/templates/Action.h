@@ -3,19 +3,29 @@
 
 #pragma once
 
+// UE
 #include <CoreMinimal.h>
 
+// ROS
 #include "unique_identifier_msgs/msg/uuid.h"
 #include "{{data.Group}}/action/{{data.Name}}.h"
 #include "action_msgs/srv/cancel_goal.h"
 
+// rclUE
 #include "Actions/ROS2GenericAction.h"
 #include "rclcUtilities.h"
 
-#include "ROS2{{data.NameCap}}Action.generated.h"
+
+// Generated Msg/Srv/Action(can be empty)
+{{data.GoalHeaders}}
+{{data.ResultHeaders}}
+{{data.FeedbackHeaders}}
+
+// Generated
+#include "ROS2{{data.UEName}}.generated.h"
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalRequest
+struct {{data.ModuleAPI}} FROS{{data.UEName}}SGReq
 {
 	GENERATED_BODY()
 
@@ -24,9 +34,10 @@ public:
 
 	{{data.GoalTypes}}
 
-	F{{data.StructName}}SendGoalRequest()
+	FROS{{data.UEName}}SGReq()
     {
         UROS2Utils::GenerateRandomUUID16(GoalId);
+		{{data.GoalConstructor}}
     }
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_SendGoal_Request& in_ros_data)
@@ -51,7 +62,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalResponse
+struct {{data.ModuleAPI}} FROS{{data.UEName}}SGRes
 {
 	GENERATED_BODY()
 
@@ -76,14 +87,14 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}GetResultRequest
+struct {{data.ModuleAPI}} FROS{{data.UEName}}GRReq
 {
 	GENERATED_BODY()
 
 public:
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
-    F{{data.StructName}}GetResultRequest()
+    FROS{{data.UEName}}GRReq()
     {
         GoalId.Init(0, 16);
     }
@@ -107,7 +118,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}GetResultResponse
+struct {{data.ModuleAPI}} FROS{{data.UEName}}GRRes
 {
 	GENERATED_BODY()
 
@@ -116,6 +127,11 @@ public:
 	int8 Status = 0;
 
 	{{data.ResultTypes}}
+
+	FROS{{data.UEName}}GRRes()
+    {
+		{{data.ResultConstructor}}
+    }
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Response& in_ros_data)
 	{
@@ -131,7 +147,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}FeedbackMessage
+struct {{data.ModuleAPI}} FROS{{data.UEName}}FB
 {
 	GENERATED_BODY()
 
@@ -141,9 +157,10 @@ public:
 	{{data.FeedbackTypes}}
 
 
-    F{{data.StructName}}FeedbackMessage()
+    FROS{{data.UEName}}FB()
     {
         GoalId.Init(0, 16);
+		{{data.FeedbackConstructor}}
     }
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_FeedbackMessage& in_ros_data)
@@ -168,7 +185,7 @@ public:
 };
 
 UCLASS()
-class {{data.ModuleAPI}} UROS2{{data.NameCap}}Action : public UROS2GenericAction
+class {{data.ModuleAPI}} UROS2{{data.UEName}}Action : public UROS2GenericAction
 {
 	GENERATED_BODY()
 	
@@ -180,37 +197,37 @@ public:
 	virtual const rosidl_action_type_support_t* GetTypeSupport() const override;
 
   	UFUNCTION(BlueprintCallable)
-	void SetGoalRequest(const F{{data.StructName}}SendGoalRequest& Goal);
+	void SetGoalRequest(const FROS{{data.UEName}}SGReq& Goal);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalRequest(F{{data.StructName}}SendGoalRequest& Goal) const;
+	void GetGoalRequest(FROS{{data.UEName}}SGReq& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalResponse(const F{{data.StructName}}SendGoalResponse& Goal);
+	void SetGoalResponse(const FROS{{data.UEName}}SGRes& Goal);
 
   	UFUNCTION(BlueprintCallable)
-	void GetGoalResponse(F{{data.StructName}}SendGoalResponse& Goal) const;
+	void GetGoalResponse(FROS{{data.UEName}}SGRes& Goal) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultRequest(const F{{data.StructName}}GetResultRequest& Result);
+	void SetResultRequest(const FROS{{data.UEName}}GRReq& Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetResultRequest(F{{data.StructName}}GetResultRequest& Result) const;
+	void GetResultRequest(FROS{{data.UEName}}GRReq& Result) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetResultResponse(const F{{data.StructName}}GetResultResponse& Result);
+	void SetResultResponse(const FROS{{data.UEName}}GRRes& Result);
 
   	UFUNCTION(BlueprintCallable)
-	void GetResultResponse(F{{data.StructName}}GetResultResponse& Result) const;
+	void GetResultResponse(FROS{{data.UEName}}GRRes& Result) const;
 
   	UFUNCTION(BlueprintCallable)
-	void SetFeedback(const F{{data.StructName}}FeedbackMessage& Feedback);
+	void SetFeedback(const FROS{{data.UEName}}FB& Feedback);
 
   	UFUNCTION(BlueprintCallable)
-	void GetFeedback(F{{data.StructName}}FeedbackMessage& Feedback) const;
+	void GetFeedback(FROS{{data.UEName}}FB& Feedback) const;
 	
   	UFUNCTION(BlueprintCallable)
-	void SetGoalIdToFeedback(F{{data.StructName}}FeedbackMessage& Feedback);
+	void SetGoalIdToFeedback(FROS{{data.UEName}}FB& Feedback);
 
 	virtual void* GetGoalRequest() override;
 	virtual void* GetGoalResponse() override;

@@ -3,22 +3,36 @@
 
 #pragma once
 
+// UE
 #include <CoreMinimal.h>
 
-#include "Srvs/ROS2GenericSrv.h"
-#include "rclcUtilities.h"
+// ROS
 #include "{{data.Group}}/srv/{{data.Name}}.h"
 
-#include "ROS2{{data.NameCap}}Srv.generated.h"
+// rclUE
+#include "Srvs/ROS2GenericSrv.h"
+#include "rclcUtilities.h"
+
+// Generated Msg/Srv/Action(can be empty)
+{{data.ReqHeaders}}
+{{data.ResHeaders}}
+
+// Generated
+#include "ROS2{{data.UEName}}.generated.h"
 
 // potential problem: if this struct is defined multiple times!
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}Request
+struct {{data.ModuleAPI}} FROS{{data.UEName}}Req
 {
 	GENERATED_BODY()
 
 public:
 	{{data.ReqTypes}}
+
+	FROS{{data.UEName}}Req()
+	{
+		{{data.ReqConstructor}}
+	}
 
 	void SetFromROS2(const {{data.Group}}__srv__{{data.NameCap}}_Request& in_ros_data)
 	{
@@ -32,12 +46,17 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct {{data.ModuleAPI}} F{{data.StructName}}Response
+struct {{data.ModuleAPI}} FROS{{data.UEName}}Res
 {
 	GENERATED_BODY()
 
 public:
 	{{data.ResTypes}}
+
+	FROS{{data.UEName}}Res()
+	{
+		{{data.ResConstructor}}
+	}
 
 	void SetFromROS2(const {{data.Group}}__srv__{{data.NameCap}}_Response& in_ros_data)
 	{
@@ -51,7 +70,7 @@ public:
 };
 
 UCLASS()
-class {{data.ModuleAPI}} UROS2{{data.NameCap}}Srv : public UROS2GenericSrv
+class {{data.ModuleAPI}} UROS2{{data.UEName}}Srv : public UROS2GenericSrv
 {
 	GENERATED_BODY()
 
@@ -66,19 +85,19 @@ public:
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void SetRequest(const F{{data.StructName}}Request& Request);
+	void SetRequest(const FROS{{data.UEName}}Req& Request);
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void GetRequest(F{{data.StructName}}Request& Request) const;
+	void GetRequest(FROS{{data.UEName}}Req& Request) const;
 	
 	// used by service
   	UFUNCTION(BlueprintCallable)
-	void SetResponse(const F{{data.StructName}}Response& Response);
+	void SetResponse(const FROS{{data.UEName}}Res& Response);
 	
 	// used by client
   	UFUNCTION(BlueprintCallable)
-	void GetResponse(F{{data.StructName}}Response& Response) const;
+	void GetResponse(FROS{{data.UEName}}Res& Response) const;
 	
 	virtual void* GetRequest() override;
 	virtual void* GetResponse() override;
