@@ -20,7 +20,6 @@ struct {{data.ModuleAPI}} F{{data.StructName}}SendGoalRequest
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
 	{{data.GoalTypes}}
@@ -82,7 +81,6 @@ struct {{data.ModuleAPI}} F{{data.StructName}}GetResultRequest
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
     F{{data.StructName}}GetResultRequest()
@@ -138,7 +136,6 @@ struct {{data.ModuleAPI}} F{{data.StructName}}FeedbackMessage
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
 	{{data.FeedbackTypes}}

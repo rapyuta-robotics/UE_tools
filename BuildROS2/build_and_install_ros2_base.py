@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import argparse
 
 from build_and_install_ros2 import build_ros2
@@ -64,12 +63,12 @@ DEFAULT_NOT_ALLOWED_SPACES = [
     'sensor_msgs_py', 
     'tf2_sensor_msgs', 
     'rosgraph_msgs', 
-
     'tracetools_', 
     'Codec_', 
     'Plugin_', 
     'RenderSystem_', 
-    '_test_type_support']
+    '_test_type_support'
+]
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

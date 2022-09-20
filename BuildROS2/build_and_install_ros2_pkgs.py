@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import argparse
 
 from build_and_install_ros2 import build_ros2
@@ -76,7 +75,7 @@ if __name__ == '__main__':
         pluginFolderName = ue_plugin_folder_name,
         targetThirdpartyFolderName = args.ue_target_3rd_name,
         buildType = 'pkgs',
-        allowed_spaces = DEFAULT_PKGS,
+        allowed_spaces = args.ros_pkgs,
         not_allowed_spaces = [],
-        pkgs = DEFAULT_PKGS
+        pkgs = args.ros_pkgs
     )

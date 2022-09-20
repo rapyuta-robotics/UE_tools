@@ -22,25 +22,29 @@ def check_blacklist(file_name, black_list=BLACK_LIST):
             return True
     return False
 
-def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, ue_target_3rd_name, ue_target_ros_wrapper_path):
+def copy_files(target_path, type_name, extension, black_list):
+    current_dir = os.getcwd()
+    target_path = os.path.join(target_path, f'{type_name}s')
+    os.makedirs(target_path, exist_ok=True)
+    print('Copy generated files to ' + target_path)
+    for file_name in glob.glob(f'*{type_name}{extension}'):
+        if check_blacklist(file_name, black_list):
+            print(' *' + file_name + ' is in BLACK_LIST and not copied.')
+            continue
+        shutil.copy(os.path.join(current_dir, file_name), target_path)
+        print(' Copied ' + file_name)
+
+def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, ue_target_ros_wrapper_path, black_list=BLACK_LIST):
 
     ue_target_src_path = os.path.join(ue_project_path, 'Plugins', ue_plugin_folder_name, 'Source')
-    ue_target_3rd_path = os.path.join(ue_project_path, 'Plugins', ue_plugin_folder_name, 'Source', 'ThirdParty', ue_target_3rd_name)
     ue_public_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Public', ue_target_ros_wrapper_path)
     ue_private_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Private', ue_target_ros_wrapper_path)
     
     # Copy UE wrapper of ros src
-    current_dir = os.getcwd()
     for type_name in ['Action','Srv','Msg']:
-        for file_name in glob.glob(f'*{type_name}.h'):
-            if check_blacklist(file_name, BLACK_LIST):
-                continue
-            shutil.copy(os.path.join(current_dir, file_name), os.path.join(ue_public_path, f'{type_name}s'))
-        for file_name in glob.glob(f'*{type_name}.cpp'):
-            if check_blacklist(file_name, BLACK_LIST):
-                continue
-            shutil.copy(os.path.join(current_dir, file_name), os.path.join(ue_private_path, f'{type_name}s'))
-    
+        copy_files(ue_public_path, type_name, '.h', black_list)
+        copy_files(ue_private_path, type_name,'.cpp', black_list)
+        
     return 
 
 if __name__ == "__main__":
@@ -63,24 +67,17 @@ if __name__ == "__main__":
         default='rclUE'
     )
     parser.add_argument(
-        "--ue_target_3rd_name",
-        help="Target 3rd name under ThirdParty, eg: ros",
-        default='ros'
-    )
-    parser.add_argument(
         "--ue_target_ros_wrapper_path",
         help="Target ros wrapper relative folder path under Source's Private/Public, eg: ROS2",
         default=''
     )
     args = parser.parse_args()
     
-    copy_ros_to_ue(
-        # args.ros_install_path, 
-        # args.ros_pkgs,           
+    copy_ros_to_ue(      
         args.ue_proj_path, 
         args.ue_plugin_name, 
         args.ue_plugin_folder_name,
-        args.ue_target_3rd_name, 
-        args.ue_target_ros_wrapper_path
+        args.ue_target_ros_wrapper_path,
+        BLACK_LIST
     )
     

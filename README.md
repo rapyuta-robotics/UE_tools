@@ -1,7 +1,29 @@
 UE_tools
 ==========
 
-# Overview
+# Generic usage
+- cmd
+    
+    `python3 build_install_codegen.py --type <base or pkgs> --codegen --build --config <path to yaml>`
+- options
+    - --type: 
+        - base: Build core ros2 libs and copy to target plugin. see [ROS2 Lib Update](#ros2-lib-update) 
+        - pkgs: Build given pkgs in config and copy to target plugin . see [Interface update](#interface-update) 
+    - --build: 
+        
+        Build core lib or pkgs in config under BuildROS2/ros2_ws. You need to copy custom src manually if you need.
+    - --codegen: 
+
+        Generate UE code and copy to target plugins. Only valid with --type==pkgs
+    - --config:
+
+        config file path. please refer default_config.yaml.
+
+*need to build core lib once with --type==base to build other pkgs.
+*this helper script uses [ROS2 Lib Update](#ros2-lib-update) and [Interface update](#interface-update) internally.
+
+
+# Module Overview
 
 ## ROS2 Lib update
 

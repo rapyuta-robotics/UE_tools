@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, shutil, re, time, subprocess
+import os, time
 from libs_utils import *
 
 def build_ros2(
@@ -15,7 +15,7 @@ def build_ros2(
     pkgs = [],
 ):
     start = time.time()
-
+    
     buildRosScript =  os.path.join(os.getcwd(), 'setup_ros2_' + buildType + '.sh')
 
     # Assume pluginFolderName is same as PluginName if it is empty.
@@ -25,7 +25,7 @@ def build_ros2(
     # UE paths
     pluginPath =  os.path.join(projectPath, 'Plugins', pluginFolderName)
     pluginPathBinaries = os.path.join(pluginPath, 'Binaries')
-    pluginPathRos =  os.path.join(pluginPath, 'Source/ThirdParty', targetThirdpartyFolderName)
+    pluginPathRos =  os.path.join(pluginPath, 'ThirdParty', targetThirdpartyFolderName)
     pluginPathRosInclude =  os.path.join(pluginPathRos, 'include')
     pluginPathRosLib =  os.path.join(pluginPathRos, 'lib')
     pluginPathBuildCS =  os.path.join( pluginPath, 'Source', pluginName, pluginName + '.Build.cs')
