@@ -78,7 +78,8 @@ sudo apt install --no-install-recommends -y \
 ROS2_WS=$(pwd)/ros2_ws
 mkdir -p $ROS2_WS/src
 cd $ROS2_WS
-wget https://raw.githubusercontent.com/ros2/ros2/foxy/ros2.repos
+# wget https://raw.githubusercontent.com/ros2/ros2/foxy/ros2.repos
+wget https://raw.githubusercontent.com/ros2/ros2/dcde4281490e6f2d6167fb53e71e577bed998563/ros2.repos
 vcs import src < ros2.repos
 
 # Install dependencies using rosdep
@@ -108,7 +109,8 @@ echo "
 Clone rclc 
 ########################
 "
-git clone --branch foxy https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
+# git clone --branch foxy https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
+git clone --branch eb5076425bfe71943a4b3ba2100f50ef9480bc0f https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
 
 echo "
 #######################
