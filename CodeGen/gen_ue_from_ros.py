@@ -358,7 +358,7 @@ def cpp2ros_vector(v_ros, v_ue, comp, is_array=False, is_fixed_size=False):
     return 'out_ros_data.' + v_ros + iterator_ros + component.lower() + ' = ' + v_ue + iterator + component.upper() + ';'
 
 
-def free_and_malloc(v_ros, v_ue, type, Free=True):
+def free_and_malloc(v_ros, v_ue, type, Free=False):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
     alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
     size = '(' + v_ue + '.Num())'
