@@ -5,6 +5,10 @@ args: #path is relative from home
   ue_plugin_folder_name: rclUE
   ue_target_3rd_name: ros # sub dir name under ThirdParty
 
+
+# additional repos file path. path is relative from home
+repos: UE_tools/ros2_additional_pkgs.repos
+
 ## build and code gen target msgs
 ## pkgs and prefix for class
 target_pkgs: 

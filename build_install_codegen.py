@@ -51,12 +51,12 @@ def load_from_config(file_name, dependency, name_mapping):
         print('failed to open ' + file_name)
         sys.exit(0)
 
+    home = os.environ['HOME']
     if 'args' in config:
         if  'ue_path' in config['args'] and \
             'ue_proj_path' in config['args'] and \
             'ue_plugin_name' in config['args'] and \
             'ue_target_3rd_name' in config['args']:
-            home = os.environ['HOME']
             UEPath = os.path.join(home, config['args']['ue_path'])
             projectPath = os.path.join(home, config['args']['ue_proj_path'])
             pluginName = config['args']['ue_plugin_name']
@@ -72,6 +72,9 @@ def load_from_config(file_name, dependency, name_mapping):
         print('args must be in config')
         sys.exit(0)
    
+    if 'repos' in config:
+        os.system('vcs import --repos --debug --recursive BuildROS2/ros2_ws/src < ' + os.path.join(home, config['repos']))
+
     # target
     if 'target_pkgs' in config:
         if isinstance(config['target_pkgs'], dict):
@@ -175,7 +178,7 @@ if __name__ == '__main__':
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
         target, black_list, dependency, name_mapping = load_from_conifgs(config_files)
-    
+
     # build lib and copy to ue project
     if args.build:
         with managed_chdir('BuildROS2'):
@@ -189,10 +192,10 @@ if __name__ == '__main__':
                 not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES
                 pkgs = ['ue_msgs']
             elif args.type == 'pkgs':
-                allowed_spaces = target.keys()
+                allowed_spaces = list(target.keys())
                 not_allowed_spaces = []
-                pkgs = target.keys()
-            
+                pkgs = list(target.keys())
+
             build_ros2(
                 UEPath = UEPath,
                 projectPath = projectPath,

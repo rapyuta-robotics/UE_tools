@@ -134,7 +134,7 @@ BP_UNSUPPORTED_TYPES = [
 ]
 
 # UE BP-supported types only?
-def convert_to_ue_type(t, dependency, name_mapping):
+def convert_to_ue_type(t, pkgs_name_mapping, name_mapping):
     
     #temp
     t = re.sub(r'string<=\d+', 'string', t)
@@ -142,11 +142,11 @@ def convert_to_ue_type(t, dependency, name_mapping):
     size = 0
     if '[]' in t:
         t = t.replace('[]','')
-        t = f'TArray<{convert_to_ue_type(t, dependency, name_mapping)[0]}>'
+        t = f'TArray<{convert_to_ue_type(t, pkgs_name_mapping, name_mapping)[0]}>'
     elif ('[' in t) and (']' in t):
         tmp = re.split('\[|\]', t)
         size = tmp[1].replace('<=','')
-        t = f'TArray<{convert_to_ue_type(tmp[0], dependency, name_mapping)[0]}>'
+        t = f'TArray<{convert_to_ue_type(tmp[0], pkgs_name_mapping, name_mapping)[0]}>'
     elif t in TYPE_CONVERSION :
         if t == 'wstring':
             logger.error('wstring is not supported. this will cause compilation error in UE.' + str(original_names) + ' (get_ue_var_name)')
@@ -154,7 +154,7 @@ def convert_to_ue_type(t, dependency, name_mapping):
     elif t in ROS_BUILDIN_TYPES:
         pass
     else : #compound msg type
-        t = 'FROS' + update_msg_name_full(t, dependency, name_mapping)
+        t = 'FROS' + update_msg_name_full(t, pkgs_name_mapping, name_mapping)
 
     #elif t == 'geometry_msgs/Pose': -> {FRRDoubleVector, FQuat}
     #elif t == 'geometry_msgs/Twist': -> {FVector TwistLinear, FVector TwistAngular}
@@ -193,20 +193,20 @@ def get_type_default_value_str(t):
     return res
 
 # change pkg name
-def update_msg_name_full(in_type, dependency, name_mapping):
+def update_msg_name_full(in_type, pkgs_name_mapping, name_mapping):
     type_name = in_type
     pkg_name = ''
     if '/' in type_name:
         texts = in_type.split('/')
         pkg_name = texts[0]
         type_name = texts[1]
-    return update_msg_name(pkg_name, type_name, dependency, name_mapping)
+    return update_msg_name(pkg_name, type_name, pkgs_name_mapping, name_mapping)
     
 # change prefix
-def update_msg_name(in_pkg, in_type, dependency, name_mapping):
+def update_msg_name(in_pkg, in_type, pkgs_name_mapping, name_mapping):
     # pkg_name update
-    if in_pkg in dependency:
-        pkg_name = dependency[in_pkg]
+    if in_pkg in pkgs_name_mapping:
+        pkg_name = pkgs_name_mapping[in_pkg]
     else:
         pkg_name = snake_to_pascal(in_pkg)
 
@@ -228,10 +228,10 @@ def remove_underscore(in_text):
 # generate variable name for UE C++
 # original_names: member names defined in .msg, .srv, .action
 # return [(type, size), var_name]
-def get_ue_var_name(original_names, dependency, name_mapping):
+def get_ue_var_name(original_names, pkgs_name_mapping, name_mapping):
     if len(original_names) == 2:
         return [
-                convert_to_ue_type(original_names[0], dependency, name_mapping), 
+                convert_to_ue_type(original_names[0], pkgs_name_mapping, name_mapping), 
                 convert_to_ue_name(original_names[1], original_names[0])
             ]
     else:
@@ -876,7 +876,7 @@ def get_types_dict(target_paths):
 # element 0: type
 # element 1: set from ros2
 # element 2: set ros2
-def get_types_cpp(target_paths, dependency, name_mapping):
+def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
     types_dict = get_types_dict(target_paths)
     types_cpp = {}
 
@@ -890,7 +890,7 @@ def get_types_cpp(target_paths, dependency, name_mapping):
             headers = ''
             constants = {'def': '', 'getter': ''}
             logger.debug('get_types_cpp: parse input {} {}'.format(key, value))
-            new_key = update_msg_name_full(key, dependency, name_mapping)
+            new_key = update_msg_name_full(key, pkgs_name_mapping, name_mapping)
             for v in value:
                 logger.debug("input: {}".format(v))
 
@@ -902,7 +902,7 @@ def get_types_cpp(target_paths, dependency, name_mapping):
                     constants['getter'] += cgetter
                     continue
 
-                res_ue = get_ue_var_name(v, dependency, name_mapping)
+                res_ue = get_ue_var_name(v, pkgs_name_mapping, name_mapping)
                 logger.debug("res_ue: {}".format(res_ue))
                 res_ros = get_ros_var_name(v)
                 logger.debug("res_ros: {}".format(res_ros))
@@ -1025,7 +1025,8 @@ def codegen(module, dependency, target, name_mapping):
     logger.debug('ue_paths: {}'.format(ue_paths))
     logger.debug('groups: {}'.format(groups))
 
-    types_cpp = get_types_cpp(ros_paths, dependency, name_mapping)
+    pkgs_name_mapping = {**dependency, **target}
+    types_cpp = get_types_cpp(ros_paths, pkgs_name_mapping, name_mapping)
     def is_valid_group_name(in_group_name):
         return ((in_group_name in types_cpp) and len(types_cpp[in_group_name]) >= 3)
 
@@ -1051,7 +1052,8 @@ def codegen(module, dependency, target, name_mapping):
                 # Not accept ROS file name having '_'
                 if('_' in name):
                     continue
-                ue_name = update_msg_name(pkg_name, name, dependency, name_mapping)
+                ue_name = update_msg_name(pkg_name, name, pkgs_name_mapping, name_mapping)
+                print(ue_name)
                 name_cap = snake_to_pascal(name)
 
                 logger.debug(' INPUT ROS2 FILE:' + os.path.basename(file_path))
