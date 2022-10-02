@@ -5,7 +5,7 @@ import shutil
 import glob
 
 # temporary black list msgs which can't be parsed properly
-BLACK_LIST = [
+DEFAULT_BLACK_LIST = [
     "ROS2WStr", # can't handle wstring in UE.
     
     # # array parser issue
@@ -16,7 +16,7 @@ BLACK_LIST = [
     # "ROS2TFMessageMsg", # memcpy/free issues. fixed version in rclUE but can't autogenerate.
 ]
 
-def check_blacklist(file_name, black_list=BLACK_LIST):
+def check_blacklist(file_name, black_list=DEFAULT_BLACK_LIST):
     for b in black_list:
         if b in file_name:
             return True
@@ -34,7 +34,7 @@ def copy_files(target_path, type_name, extension, black_list):
         shutil.copy(os.path.join(current_dir, file_name), target_path)
         print(' Copied ' + file_name)
 
-def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black_list=BLACK_LIST):
+def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black_list=DEFAULT_BLACK_LIST):
 
     ue_target_src_path = os.path.join(ue_project_path, 'Plugins', ue_plugin_folder_name, 'Source')
     ue_public_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Public')
@@ -73,6 +73,6 @@ if __name__ == "__main__":
         args.ue_proj_path, 
         args.ue_plugin_name, 
         args.ue_plugin_folder_name,
-        BLACK_LIST
+        DEFAULT_BLACK_LIST
     )
     

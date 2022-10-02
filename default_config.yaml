@@ -5,8 +5,8 @@ args: #path is relative from home
   ue_plugin_folder_name: rclUE
   ue_target_3rd_name: ros # sub dir name under ThirdParty
 
-# build and code gen target msgs
-# pkgs and prefix for class
+## build and code gen target msgs
+## pkgs and prefix for class
 target_pkgs: 
   action_msgs: ''
   actionlib_msgs: ''
@@ -28,6 +28,19 @@ target_pkgs:
   #ackermann_msgs: ''
   example_interfaces: ''
   ue_msgs: ''
+
+## if dependency is "targe", it used same value as target
+## elif dependency is "default", it uses default value defined in script
+dependency: "target" 
+# dependency: "default"
+# dependency: 
+#   action_msgs: ''
+
+## additional dependency
+## this dict is appended on dependency. 
+## Used to add dependency without overwriting original dependency.
+# dependency_append: ''
+  # your_msg: ''
 
 name_mapping:
   Covariance: 'Cov'
@@ -55,14 +68,13 @@ name_mapping:
   Image: 'Img'
   Odometry: 'Odom'
 
+## additional name_mapping
+## this dict is appended on name_mapping. 
+## Used to add name_mapping without overwriting original dependency.
+# name_mapping_append: 
+#   your_mapping_key: 'your_mapping_value'
+
 
 # msgs which is not copied to project.
 black_list_msgs:
   - 'ROS2WStr' # can't handle wstring in UE.
-  # #
-  # # array parser issue
-  # - 'ROS2CancelGoalSrv'
-  # - 'ROS2MeshMsg'
-  # - 'ROS2SolidPrimitiveMsg'
-  # #
-  # - 'ROS2TFMessageMsg' # memcpy/free issues. fixed version in rclUE but can't autogenerate.    

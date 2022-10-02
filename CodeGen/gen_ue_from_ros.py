@@ -26,26 +26,26 @@ logger = logging.getLogger(__name__)
 # BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
 BASE_ROS_INSTALL_PATH = os.path.join(os.getcwd(), '../BuildROS2/ros2_ws/install')
 DEFAULT_DEPENDENCY_PKGS = {
-    'action_msgs': '',
+    # 'action_msgs': '',
     'actionlib_msgs': '',
     'builtin_interfaces': '',
-    'unique_identifier_msgs': '',
-    'diagnostic_msgs': '',
-    'rosgraph_msgs': '',
-    'geometry_msgs': '',
-    'nav_msgs': '',
-    'sensor_msgs': '',
-    'shape_msgs': '',
+    # 'unique_identifier_msgs': '',
+    # 'diagnostic_msgs': '',
+    # 'rosgraph_msgs': '',
+    # 'geometry_msgs': '',
+    # 'nav_msgs': '',
+    # 'sensor_msgs': '',
+    # 'shape_msgs': '',
     'std_msgs': '',
-    'std_srvs': 'StdSrv',
-    'stereo_msgs': '',
-    'trajectory_msgs': '',
-    'visualization_msgs': '',
-    'tf2_msgs': '',
-    'pcl_msgs': '',
+    # 'std_srvs': 'StdSrv',
+    # 'stereo_msgs': '',
+    # 'trajectory_msgs': '',
+    # 'visualization_msgs': '',
+    # 'tf2_msgs': '',
+    # 'pcl_msgs': '',
     #'ackermann_msgs': '',
-    'example_interfaces': '',
-    'ue_msgs': ''
+    # 'example_interfaces': '',
+    # 'ue_msgs': ''
 }
 # DEFAULT_DEPENDENCY_PKGS = {os.path.join(BASE_ROS_INSTALL_PATH, k):v for (k, v) in DEFAULT_DEPENDENCY_PKGS.items()}
 
@@ -612,6 +612,28 @@ def get_headers(type_ue, type_ros, types_dict):
 
     return res
 
+# input: k=struct_name, v=[type, name, value]
+# return: definition_str, getter_str
+def get_constants(k, v):
+    #   static constexpr int sample = 10;
+    type_name = convert_to_ue_type(v[0], {}, {})[0] 
+    cdef = '\tstatic constexpr ' + type_name + ' ' + v[1] + ' = ' + v[2] + ';\n'
+
+    # UFUNCTION(BlueprintCallable)
+    # static int sample()
+    # {
+    #     return FROSTFStamped::sample;
+    # }
+    cgetter = ''
+    if type_name not in BP_UNSUPPORTED_TYPES:
+        cgetter +=  'UFUNCTION(BlueprintCallable)\n\t'
+    cgetter += \
+        'static ' + type_name + ' CONST_' + v[1] + '()\n\t' + \
+        '{\n\t\t' + \
+            'return FROS' + k + '::' + v[1] + ';\n\t' + \
+        '}\n\t'
+    return cdef, cgetter
+
 def get_constructors(r, v_ue, size):
     
     # Initialize fixed size array
@@ -738,6 +760,8 @@ def get_types_dict(target_paths):
                     c for c in content if not c.startswith('#') and c != '']
                 content = [c.split('#')[0] for c in content]
 
+                constants = [c for c in content if '=' in c and ('<=' not in c)]
+
                 # remove constants - these will eventually need to be used
                 content = [c for c in content if '=' not in c or ('<=' in c)]
 
@@ -752,6 +776,14 @@ def get_types_dict(target_paths):
                     temp_name = re.sub(r'\[\d*\]', '', temp_name)
                     if temp_name not in ROS_BUILDIN_TYPES and '/' not in temp_name:
                         c[0] = pkg_name + c[0]
+                
+                # parse constants to [type name value]
+                for c in constants:
+                    c = c.split() # split type, name and value
+                    const_v= c[1:] # [typename=value] or [typename, =, value]
+                    const_v = ''.join(const_v).split('=') # [typename, value]
+                    c = [c[0], const_v[0], const_v[1]] #[typename, name, value]
+                    content.append(c)
 
                 if fi.endswith('.msg'):
                     # remove comments, empty and separator lines; keep only variable type and name
@@ -856,10 +888,20 @@ def get_types_cpp(target_paths, dependency, name_mapping):
             set_from_ros2 = ''
             constructor = ''
             headers = ''
+            constants = {'def': '', 'getter': ''}
             logger.debug('get_types_cpp: parse input {} {}'.format(key, value))
+            new_key = update_msg_name_full(key, dependency, name_mapping)
             for v in value:
-
                 logger.debug("input: {}".format(v))
+
+                # parse constants
+                if len(v) >= 3:
+                    logger.debug("parse constant: {}".format(v))
+                    cdef, cgetter = get_constants(new_key, v)
+                    constants['def'] += cdef
+                    constants['getter'] += cgetter
+                    continue
+
                 res_ue = get_ue_var_name(v, dependency, name_mapping)
                 logger.debug("res_ue: {}".format(res_ue))
                 res_ros = get_ros_var_name(v)
@@ -930,9 +972,8 @@ def get_types_cpp(target_paths, dependency, name_mapping):
                     set_ros2 += getter_SoA(t_ue_array, v_ue_array,
                                         v_ros_array, size_array)
 
-            new_key = update_msg_name_full(key, dependency, name_mapping)
-            logger.debug('get_types_cpp: parsed result {} {}'.format(new_key, [cpp_type, set_from_ros2, set_ros2, constructor, headers]))
-            types_cpp[new_key] = [cpp_type, set_from_ros2, set_ros2, constructor, headers]
+            logger.debug('get_types_cpp: parsed result {} {}'.format(new_key, [cpp_type, set_from_ros2, set_ros2, constructor, headers, constants]))
+            types_cpp[new_key] = [cpp_type, set_from_ros2, set_ros2, constructor, headers, constants]
 
     # for key, value in types_cpp.items():
     #    print(str(key) + ' -> ' + str(value[2]))
@@ -1041,6 +1082,8 @@ def codegen(module, dependency, target, name_mapping):
                         info['SetROS2'] = types_cpp[group_name][2]
                         info['Constructor'] = types_cpp[group_name][3]
                         info['Headers'] = types_cpp[group_name][4]
+                        info['ConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 
@@ -1052,6 +1095,8 @@ def codegen(module, dependency, target, name_mapping):
                         info['ReqSetROS2'] = types_cpp[group_name][2]
                         info['ReqConstructor'] = types_cpp[group_name][3]
                         info['ReqHeaders'] = types_cpp[group_name][4]
+                        info['ReqConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ReqConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 
@@ -1062,6 +1107,8 @@ def codegen(module, dependency, target, name_mapping):
                         info['ResSetROS2'] = types_cpp[group_name][2]
                         info['ResConstructor'] = types_cpp[group_name][3]
                         info['ResHeaders'] = types_cpp[group_name][4]
+                        info['ResConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ResConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 
@@ -1075,6 +1122,8 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.goal.')
                         info['GoalConstructor'] = types_cpp[group_name][3]
                         info['GoalHeaders'] = types_cpp[group_name][4]
+                        info['GoalConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['GoalConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 
@@ -1087,6 +1136,8 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.result.')
                         info['ResultConstructor'] = types_cpp[group_name][3]
                         info['ResultHeaders'] = types_cpp[group_name][4]
+                        info['ResultConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ResultConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 
@@ -1099,6 +1150,8 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.feedback.')
                         info['FeedbackConstructor'] = types_cpp[group_name][3]
                         info['FeedbackHeaders'] = types_cpp[group_name][4]
+                        info['FeedbackConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['FeedbackConstantsGetter'] = types_cpp[group_name][5]['getter']
                     else:
                         print_group_name_info(group_name)
 

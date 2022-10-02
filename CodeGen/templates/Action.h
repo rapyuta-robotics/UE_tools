@@ -30,7 +30,9 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}SGReq
 	GENERATED_BODY()
 
 public:
-  	TArray<uint, TFixedAllocator<16>> GoalId;
+	{{data.GoalConstantsDef}}
+  	
+	TArray<uint, TFixedAllocator<16>> GoalId;
 
 	{{data.GoalTypes}}
 
@@ -123,6 +125,8 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}GRRes
 	GENERATED_BODY()
 
 public:
+	{{data.ResultConstantsDef}}
+
 	UPROPERTY()
 	int8 Status = 0;
 
@@ -152,6 +156,8 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}FB
 	GENERATED_BODY()
 
 public:
+	{{data.FeedbackConstantsDef}}
+
   	TArray<uint, TFixedAllocator<16>> GoalId;
 
 	{{data.FeedbackTypes}}
@@ -234,6 +240,10 @@ public:
 	virtual void* GetResultRequest() override;
 	virtual void* GetResultResponse() override;
 	virtual void* GetFeedbackMessage() override;
+
+	{{data.GoalConstantsGetter}}
+	{{data.ResultConstantsGetter}}
+	{{data.FeedbackConstantsGetter}}
 
 private:
 	{{data.Group}}__action__{{data.NameCap}}_SendGoal_Request {{data.NameCap}}_goal_request;

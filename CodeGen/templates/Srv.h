@@ -27,6 +27,8 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}Req
 	GENERATED_BODY()
 
 public:
+	{{data.ReqConstantsDef}}
+
 	{{data.ReqTypes}}
 
 	FROS{{data.UEName}}Req()
@@ -51,6 +53,8 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}Res
 	GENERATED_BODY()
 
 public:
+	{{data.ResConstantsDef}}
+
 	{{data.ResTypes}}
 
 	FROS{{data.UEName}}Res()
@@ -101,6 +105,9 @@ public:
 	
 	virtual void* GetRequest() override;
 	virtual void* GetResponse() override;
+
+	{{data.ReqConstantsGetter}}
+	{{data.ResConstantsGetter}}
 
 private:
 	virtual FString SrvRequestToString() const override;

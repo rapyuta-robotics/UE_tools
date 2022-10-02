@@ -25,6 +25,8 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}
 	GENERATED_BODY()
 
 public:
+	{{data.ConstantsDef}}
+
 	{{data.Types}}
 
 	FROS{{data.UEName}}()
@@ -61,6 +63,9 @@ public:
 	void GetMsg(FROS{{data.UEName}}& Output) const;
 	
 	virtual void* Get() override;
+
+	{{data.ConstantsGetter}}
+
 
 private:
 	virtual FString MsgToString() const override;
