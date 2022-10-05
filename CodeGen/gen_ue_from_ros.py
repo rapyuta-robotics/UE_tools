@@ -266,13 +266,7 @@ def check_ros_deprecated(file_path):
 
 # generate code for setter (SetFromROS2)
 def setter(r, v_ue, v_ros, size):
-    if r == 'FVector':
-        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\n\t\t'
-    elif r == 'FQuat':
-        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\t\t' + v_ue + '.W = in_ros_data.' + v_ros + '.w;\n\n\t\t'
-    elif r == 'FString':
-        return v_ue + '.AppendChars(in_ros_data.' + v_ros + '.data, in_ros_data.' + v_ros + '.size);\n\n\t\t'
-    elif r.startswith('TArray'):
+    if r.startswith('TArray'):
         r2 = r[len('TArray<'):-len('>')]
         if r2 == 'FVector':
             if size > 0:
@@ -310,18 +304,8 @@ def setter(r, v_ue, v_ros, size):
                     + v_ue + '[i].W = in_ros_data.' + \
                     v_ros + '.w;\n\t\t}\n\n\t\t'
         elif r2 == 'FString':
-            if size > 0:
-                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace("");\n\t\t\t' \
-                    + v_ue + '[i].AppendChars(in_ros_data.' + v_ros + \
-                    '.data, in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace("");\n\t\t\t' \
-                    + v_ue + '[i].AppendChars(in_ros_data.' + v_ros + \
-                    '.data,in_ros_data.' + v_ros + '.size);\n\t\t}\n\n\t\t'
+            return v_ue + ' = UROS2Utils::StringSequenceROSToUE(in_ros_data.' + v_ros.replace('.data[i]', '') + ');\n\n\t\t'
+
         elif r2 in ROS_BUILDIN_TYPES or r2 in TYPE_CONVERSION.values():
             if size > 0:
                 return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' + v_ue + '.Emplace(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
@@ -337,9 +321,14 @@ def setter(r, v_ue, v_ros, size):
                 v_ros_size = v_ros.split('.data[i]', 1)[0]
                 return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' + v_ue + '[i].SetFromROS2(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
 
+    elif r == 'FVector':
+        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\n\t\t'
+    elif r == 'FQuat':
+        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\t\t' + v_ue + '.W = in_ros_data.' + v_ros + '.w;\n\n\t\t'
+    elif r == 'FString': 
+        return v_ue + ' = UROS2Utils::StringROSToUE(in_ros_data.' + v_ros + ');\n\n\t\t'
     elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
         return v_ue + ' = in_ros_data.' + v_ros + ';\n\n\t\t'
-    
     else: #compound type
         return v_ue + '.SetFromROS2(in_ros_data.' + v_ros + ');\n\n\t\t'
 
@@ -379,24 +368,7 @@ def free_and_malloc(v_ros, v_ue, type, Free=False):
 
 # generate code for getter_AoS - Array-of-Structures (SetROS2)
 def getter_AoS(r, v_ue, v_ros, size):
-    if r == 'FVector':
-        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\n\t\t'
-    elif r == 'FQuat':
-        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'w') + '\n\n\t\t'
-    elif r == 'FString':
-        return '{\n\t\t\t' \
-            + 'FTCHARToUTF8 strUtf8( *' + v_ue + ' );\n\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
-            + free_and_malloc(v_ros, v_ue, r) \
-            + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '), (strLength+1)*sizeof(char));\n\t\t\t' \
-            + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t' \
-            + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t' \
-            + '}\n\n\t\t'
-    elif r.startswith('TArray'):
+    if r.startswith('TArray'):
         r2 = r[len('TArray<'):-len('>')]
         for_loop_fixed = 'for (auto i = 0; i < ' + \
             str(size) + '; ++i)\n\t\t{\n\t\t\t'
@@ -439,32 +411,8 @@ def getter_AoS(r, v_ue, v_ros, size):
                     + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
                     + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
         elif r2 == 'FString':
-            if size > 0:
-                return for_loop_fixed \
-                    + '{\n\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_ue + '[i] );\n\t\t\t\tint32 strLength = strUtf8.Length();\n\t\t\t' \
-                    + 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
-                    + 'free(out_ros_data.' + v_ros + '.data);\n\t\t\t\t}\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.data = (char*)malloc((strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t}\n\n\t\t' \
-                    + '}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return free_and_malloc(v_ros_size.split('[i]', 1)[0], v_ue, 'Pointer') \
-                    + for_loop_dynamic \
-                    + '{\n\t\t\t\t' \
-                    + 'FTCHARToUTF8 strUtf8( *' + v_ue + '[i] );\n\t\t\t\t' \
-                    + 'int32 strLength = strUtf8.Length();\n\t\t\t\t' \
-                    + 'if (out_ros_data.' + v_ros + '.data != nullptr)\n\t\t\t\t{\n\t\t\t\t\t' \
-                    + 'free(out_ros_data.' + v_ros + '.data);\n\t\t\t\t}\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.data = (char*)malloc((strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'memcpy(out_ros_data.' + v_ros + '.data, TCHAR_TO_UTF8(*' + v_ue + '[i]), (strLength+1)*sizeof(char));\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.size = strLength;\n\t\t\t\t' \
-                    + 'out_ros_data.' + v_ros + '.capacity = strLength + 1;\n\t\t\t}\n\t\t' \
-                    + '}\n\n\t\t'
+            return 'UROS2Utils::StringArrayUEToROS(' + v_ue + ', out_ros_data.' +  v_ros.replace('.data[i]', '') + ');\n\t\t\t' 
+
         elif r2 in ROS_BUILDIN_TYPES or r2 in TYPE_CONVERSION.values():
             if size > 0:
                 return for_loop_fixed \
@@ -492,9 +440,19 @@ def getter_AoS(r, v_ue, v_ros, size):
                     + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
                     + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
 
+    elif r == 'FVector':
+        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
+            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
+            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\n\t\t'
+    elif r == 'FQuat':
+        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
+            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
+            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\t\t' \
+            + cpp2ros_vector(v_ros, v_ue, 'w') + '\n\n\t\t'
+    elif r == 'FString':
+        return 'UROS2Utils::StringUEToROS(' + v_ue + ', out_ros_data.' + v_ros + ');\n\t\t\t' 
     elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
         return 'out_ros_data.' + v_ros + ' = ' + v_ue + ';\n\n\t\t'
-    
     else: #compound type
         return v_ue + '.SetROS2(out_ros_data.' + v_ros + ');\n\n\t\t'
 
