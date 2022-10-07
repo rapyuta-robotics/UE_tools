@@ -82,7 +82,8 @@ UE_SPECIFIC_TYPES = [
     'geometry_msgs/Vector3', 
     'geometry_msgs/Point', 
     # 'geometry_msgs/Point32', 
-    'geometry_msgs/Quaternion'
+    'geometry_msgs/Quaternion',
+    'geometry_msgs/Transform'
 ]
 
 # ros build in types
@@ -119,7 +120,7 @@ TYPE_CONVERSION = {
     'geometry_msgs/Vector3':'FVector',
     'geometry_msgs/Point': 'FVector',
     'geometry_msgs/Quaternion': 'FQuat',
-    # 'geometry_msgs/Pose': 'FTransform'
+    'geometry_msgs/Transform': 'FTransform'
 }
 
 # used in set UPROPERTY to allow BP access
@@ -265,72 +266,48 @@ def check_ros_deprecated(file_path):
     return False
 
 # generate code for setter (SetFromROS2)
-def setter(r, v_ue, v_ros, size):
+def setter(r, v_ue, v_ros, size, ros_msg_type):
+    ros_msg_type = re.sub(r'\[\d*\]', '', ros_msg_type)
+
+    v_ros_str = 'in_ros_data.' + v_ros
+    func_name_str = 'ROSToUE'
+
     if r.startswith('TArray'):
         r2 = r[len('TArray<'):-len('>')]
+
+        func_name_str = 'Sequence' + func_name_str + 'Array'
+        if size > 0:
+            size_str = str(size)
+            v_ros_str = v_ros_str.replace('[i]', '')
+        else:
+            size_str = v_ros_str.split('.data[i]', 1)[0] + '.size'
+            v_ros_str = v_ros_str.replace('data[i]', 'data')
+
+        body = '(' + v_ros_str + ', ' + v_ue + ', ' + size_str + ')'
+        tail = ''
         if r2 == 'FVector':
-            if size > 0:
-                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace(FVector::ZeroVector);\n\t\t\t' \
-                    + v_ue + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
-                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
-                    + v_ue + '[i].Z = in_ros_data.' + \
-                    v_ros + '[i].z;\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace(FVector::ZeroVector);\n\t\t\t' \
-                    + v_ue + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
-                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
-                    + v_ue + '[i].Z = in_ros_data.' + \
-                    v_ros + '.z;\n\t\t}\n\n\t\t'
-        elif r2 == 'FQuat':
-            if size > 0:
-                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace(FQuat::Identity);\n\t\t\t' \
-                    + v_ue + '[i].X = in_ros_data.' + v_ros + '[i].x;\n\t\t\t' \
-                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '[i].y;\n\t\t\t' \
-                    + v_ue + '[i].Z = in_ros_data.' + \
-                    v_ros + '[i].z;\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' \
-                    + v_ue + '.Emplace(FQuat::Identity);\n\t\t\t' \
-                    + v_ue + '[i].X = in_ros_data.' + v_ros + '.x;\n\t\t\t' \
-                    + v_ue + '[i].Y = in_ros_data.' + v_ros + '.y;\n\t\t\t' \
-                    + v_ue + '[i].Z = in_ros_data.' + v_ros + '.z;\n\t\t\t' \
-                    + v_ue + '[i].W = in_ros_data.' + \
-                    v_ros + '.w;\n\t\t}\n\n\t\t'
-        elif r2 == 'FString':
-            return v_ue + ' = UROS2Utils::StringSequenceROSToUE(in_ros_data.' + v_ros.replace('.data[i]', '') + ');\n\n\t\t'
-
-        elif r2 in ROS_BUILDIN_TYPES or r2 in TYPE_CONVERSION.values():
-            if size > 0:
-                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' + v_ue + '.Emplace(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' + v_ue + '.Emplace(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
+            head = r2[1:] + func_name_str + '<' + ros_msg_type + '>'
+        elif r2 in ['FQuat', 'FTransform', 'FString']:
+            head = r2[1:] + func_name_str
         else: # compound
-            if size > 0:
-                return 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t' + v_ue + '[i].SetFromROS2(in_ros_data.' + v_ros + '[i]);\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return 'for (auto i = 0; i < in_ros_data.' + v_ros_size + '.size; ++i)\n\t\t{\n\t\t\t' + v_ue + '[i].SetFromROS2(in_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
+            head = func_name_str + '<' + ros_msg_type + ', ' + r2 + '>'
+        head = 'UROS2Utils::' + head
 
-    elif r == 'FVector':
-        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\n\t\t'
-    elif r == 'FQuat':
-        return v_ue + '.X = in_ros_data.' + v_ros + '.x;\n\t\t' + v_ue + '.Y = in_ros_data.' + v_ros + '.y;\n\t\t' + v_ue + '.Z = in_ros_data.' + v_ros + '.z;\n\t\t' + v_ue + '.W = in_ros_data.' + v_ros + '.w;\n\n\t\t'
-    elif r == 'FString': 
-        return v_ue + ' = UROS2Utils::StringROSToUE(in_ros_data.' + v_ros + ');\n\n\t\t'
-    elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
-        return v_ue + ' = in_ros_data.' + v_ros + ';\n\n\t\t'
-    else: #compound type
-        return v_ue + '.SetFromROS2(in_ros_data.' + v_ros + ');\n\n\t\t'
+    else:
+        head = v_ue
+        body = ' = UROS2Utils::' + r[1:] + func_name_str
+        tail = '(' + v_ros_str + ')' 
+        if r == 'FVector':
+            body += '<' + ros_msg_type + '>'
+        elif r in ['FQuat', 'FTransform', 'FString']:
+            pass
+        elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
+            body = ' = '
+            tail =  v_ros_str
+        else: #compound type
+            body = '.SetFromROS2'
+
+    return head + body + tail + ';\n\n\t\t'
 
 
 def cpp2ros_vector(v_ros, v_ue, comp, is_array=False, is_fixed_size=False):
@@ -351,9 +328,9 @@ def free_and_malloc(v_ros, v_ue, type, Free=False):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
     alloc_type_cast = 'decltype(out_ros_data.' + v_ros + '.data)'
     size = '(' + v_ue + '.Num())'
-    if type == 'FString':
-        size = '(strLength+1)'
-    elif type == 'FVector':
+    # if type == 'FString':
+    #     size = '(strLength+1)'
+    if type == 'FVector':
         size = '(' + v_ue + '.Num() * 3)'
     elif type == 'FQuat':
         size = '(' + v_ue + '.Num() * 4)'
@@ -367,94 +344,58 @@ def free_and_malloc(v_ros, v_ue, type, Free=False):
         '*sizeof(' + alloc_type + '));\n\t\t'
 
 # generate code for getter_AoS - Array-of-Structures (SetROS2)
-def getter_AoS(r, v_ue, v_ros, size):
+def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
+    ros_msg_type = re.sub(r'\[\d*\]', '', ros_msg_type)
+
+    v_ros_str = 'out_ros_data.' + v_ros
+    func_name_str = 'UEToROS'
+    closing_str =  ';\n\n\t\t'
+
     if r.startswith('TArray'):
         r2 = r[len('TArray<'):-len('>')]
-        for_loop_fixed = 'for (auto i = 0; i < ' + \
-            str(size) + '; ++i)\n\t\t{\n\t\t\t'
-        for_loop_dynamic = 'for (auto i = 0; i < ' + \
-            v_ue + '.Num(); ++i)\n\t\t{\n\t\t\t'
+        func_name_str = 'Array' + func_name_str + 'Sequence'
+        head = 'UROS2Utils::'
+        tail = ''
+        if size > 0:
+            size_str = str(size)
+            v_ros_str = v_ros_str.replace('[i]', '')
+        else:
+            v_ros_size = v_ros_str.replace('.data[i]', '')                
+            size_str = v_ue + '.Num()'
+            v_ros_str = v_ros_str.replace('data[i]', 'data')
+            head = 'UROS2Utils::ROSSequenceResourceAllocation' + \
+                    '<' + ros_msg_sequence_type + '>(' +  v_ros_size + ', ' + size_str + ');' + \
+                    '\n\t\t' + head
+
+            
+        body = '(' + v_ue + ', ' + v_ros_str + ', ' + size_str + ')'
         if r2 == 'FVector':
-            if size > 0:
-                return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_ue, 'x', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'y', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'z', True,
-                                     True) + '\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return free_and_malloc(v_ros_size, v_ue, 'FVector') + '\n\t\t' \
-                    + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
-        elif r2 == 'FQuat':
-            if size > 0:
-                return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_ue, 'x', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'y', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'z', True, True) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'w', True,
-                                     True) + '\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return free_and_malloc(v_ros_size, v_ue, 'FQuat') + '\n\t\t' \
-                    + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_ue, 'x', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'y', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'z', True, False) + '\n\t\t\t' \
-                    + cpp2ros_vector(v_ros, v_ue, 'w', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
-        elif r2 == 'FString':
-            return 'UROS2Utils::StringArrayUEToROS(' + v_ue + ', out_ros_data.' +  v_ros.replace('.data[i]', '') + ');\n\t\t\t' 
+            head += r2[1:] + func_name_str + '<' + ros_msg_type + '>'
+        elif r2 in ['FQuat', 'FTransform', 'FString']:
+            head += r2[1:] + func_name_str
+        else: # compound
+            head += func_name_str + '<' + ros_msg_type + ', ' + r2 + '>'
 
-        elif r2 in ROS_BUILDIN_TYPES or r2 in TYPE_CONVERSION.values():
-            if size > 0:
-                return for_loop_fixed \
-                    + cpp2ros_vector(v_ros, v_ue, '', True,
-                                     True) + '\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return free_and_malloc(v_ros_size, v_ue, r2) + '\n\t\t' \
-                    + for_loop_dynamic \
-                    + cpp2ros_vector(v_ros, v_ue, '', True, False) + '\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
-
+    else:
+        head = v_ros_str
+        body = 'UROS2Utils::' + r[1:] + func_name_str
+        tail = '(' + v_ue + ')'
+        if r == 'FVector':
+            body = ' = ' + body + '<' + ros_msg_type + '>'
+        elif r == 'FString':
+            head = ''
+            tail = '(' + v_ue + ', ' + v_ros_str + ')'
+        elif r in ['FQuat', 'FTransform']:
+            body = ' = ' + body
+        elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
+            body = ' = '
+            tail = v_ue
         else: #compound type
-            if size > 0:
-                return for_loop_fixed \
-                    + v_ue + '[i].SetROS2(out_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t'
-            else:
-                # need to identify multidimensional arrays - need some sort of recursion with splits
-                v_ros_size = v_ros.split('.data[i]', 1)[0]
-                return free_and_malloc(v_ros_size, v_ue, r2) + '\n\t\t' \
-                    + for_loop_dynamic \
-                    + v_ue + '[i].SetROS2(out_ros_data.' + v_ros + ');\n\t\t}\n\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.size = ' + v_ue + '.Num();\n\t\t' \
-                    + 'out_ros_data.' + v_ros_size + '.capacity = ' + v_ue + '.Num();\n\n\t\t'
+            head = v_ue
+            tail = '(' + v_ros_str + ')'
+            body = '.SetROS2'
 
-    elif r == 'FVector':
-        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\n\t\t'
-    elif r == 'FQuat':
-        return cpp2ros_vector(v_ros, v_ue, 'x') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'y') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'z') + '\n\t\t' \
-            + cpp2ros_vector(v_ros, v_ue, 'w') + '\n\n\t\t'
-    elif r == 'FString':
-        return 'UROS2Utils::StringUEToROS(' + v_ue + ', out_ros_data.' + v_ros + ');\n\t\t\t' 
-    elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
-        return 'out_ros_data.' + v_ros + ' = ' + v_ue + ';\n\n\t\t'
-    else: #compound type
-        return v_ue + '.SetROS2(out_ros_data.' + v_ros + ');\n\n\t\t'
+    return head + body + tail + closing_str
 
 def free_and_malloc_SoA(v_ros, v_ue, type):
     alloc_type = 'decltype(*out_ros_data.' + v_ros + '.data)'
@@ -547,23 +488,32 @@ def getter_SoA(r_array, v_ue_array, v_ros_array, size_array):
 
     return getter_SoA_result
 
+# extract type name from array type
+def msg_cleanup(type_ros):
+    r = type_ros.replace('<=','')
+    r = re.sub(r'\[\d*\]', '', r)
+    return r
+
+# return msg, srv or action
+def get_msg_type(type_ros, types_dict):
+    r = msg_cleanup(type_ros)
+    for t in types_dict:
+        if r in types_dict[t]:
+            msg_type = t
+            break
+    if msg_type is None:
+        logger.error('get headers: can\'t find include target for ros:{}'.format(r))
+    return msg_type
+
 def get_headers(type_ue, type_ros, types_dict):
     res = ''
     u = type_ue
     if u.startswith('TArray'):
         u = type_ue[len('TArray<'):-len('>')]
 
-    r = type_ros.replace('<=','')
-    r = re.sub(r'\[\d*\]', '', r)
+    r = msg_cleanup(type_ros)
     if r not in ROS_BUILDIN_TYPES and r not in UE_SPECIFIC_TYPES:
-        msg_type = None
-        for t in types_dict:
-            if r in types_dict[t]:
-                msg_type = t
-                break
-        if msg_type is None:
-            logger.error('get headers: can\'t find include target for ue:{}, ros:{}'.format(u, r))
-
+        msg_type = get_msg_type(type_ros, types_dict)
         file_name = 'ROS2' + u[4:] + '.h' #len(FROS2)=4
         dir_name = str.capitalize(msg_type) + 's'
         res = '#include \"' + os.path.join(dir_name, file_name) + '\"\n'
@@ -872,10 +822,29 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
 
                 it_ros = iter(res_ros)
 
+
                 for i in range(0, len(res_ue), 2):
                     t_ue = res_ue[i]
                     v_ue = res_ue[i + 1]
                     type_ros = res_ros[i]
+
+                    # used as input to template
+                    ros_msg_type = msg_cleanup(type_ros)
+                    ros_msg_sequence_type = ''
+                    if '/' in type_ros:
+                        msg_type = get_msg_type(type_ros, types_dict)
+                        ros_msg_type = ('__' + msg_type + '__').join(ros_msg_type.split('/'))
+                        ros_msg_sequence_type = ros_msg_type + '__Sequence'
+                    else:
+                        if ros_msg_type == 'string':
+                            ros_msg_type = 'rosidl_runtime_c__String'
+                            ros_msg_sequence_type = ros_msg_type + '__Sequence'
+                        else:
+                            ros_msg_sequence_type = 'rosidl_runtime_c__' + ros_msg_type + '__Sequence'
+                            if ros_msg_type in ['int64', 'uint64']: #why this is required?
+                                ros_msg_type += '_t'
+                            elif ros_msg_type in TYPE_CONVERSION.keys():
+                                ros_msg_type = TYPE_CONVERSION[ros_msg_type]
 
                     type_ue = t_ue[0]
                     size = int(t_ue[1])
@@ -911,11 +880,11 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
                     constructor += get_constructors(type_ue, v_ue, size)
                     
                     # SetFromROS
-                    set_from_ros2 += setter(type_ue, v_ue, v_ros, size)
+                    set_from_ros2 += setter(type_ue, v_ue, v_ros, size, ros_msg_type)
 
                     # SetROS2
                     if '.data[i].' not in v_ros:
-                        set_ros2 += getter_AoS(type_ue, v_ue, v_ros, size)
+                        set_ros2 += getter_AoS(type_ue, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type)
                     else:
                         t_ue_array.append(type_ue)
                         v_ue_array.append(v_ue)
