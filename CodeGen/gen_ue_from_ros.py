@@ -650,9 +650,9 @@ def get_types_dict(target_paths):
                 t = pkg_name + remove_underscore(fi_name)
                 tRequest = f'{t}Req'
                 tResponse = f'{t}Res'
-                tSendGoal = f'{t}SendGoal'
-                tGetResult = f'{t}GetResult'
-                tFeedback = f'{t}Feedback'
+                tSendGoal = f'{t}SGReq'
+                tGetResult = f'{t}GRRes'
+                tFeedback = f'{t}FB'
             
             # if struct_type == t:
                 # logger.debug('get_types_dict: type and file matches. filename: {}'.format(t))
@@ -1042,7 +1042,7 @@ def codegen(module, dependency, target, name_mapping):
                         print_group_name_info(group_name)
 
                 elif file_type == 'action':
-                    group_name = f"{p_group_name}SendGoal"
+                    group_name = f"{p_group_name}SGReq"
                     if(is_valid_group_name(group_name)):
                         info['GoalTypes'] = types_cpp[group_name][0]
                         info['GoalSetFromROS2'] = types_cpp[group_name][1].replace(
@@ -1056,7 +1056,7 @@ def codegen(module, dependency, target, name_mapping):
                     else:
                         print_group_name_info(group_name)
 
-                    group_name = f"{p_group_name}GetResult"
+                    group_name = f"{p_group_name}GRRes"
                     if(is_valid_group_name(group_name)):
                         info['ResultTypes'] = types_cpp[group_name][0]
                         info['ResultSetFromROS2'] = types_cpp[group_name][1].replace(
@@ -1070,7 +1070,7 @@ def codegen(module, dependency, target, name_mapping):
                     else:
                         print_group_name_info(group_name)
 
-                    group_name = f"{p_group_name}Feedback"
+                    group_name = f"{p_group_name}FB"
                     if(is_valid_group_name(group_name)):
                         info['FeedbackTypes'] = types_cpp[group_name][0]
                         info['FeedbackSetFromROS2'] = types_cpp[group_name][1].replace(

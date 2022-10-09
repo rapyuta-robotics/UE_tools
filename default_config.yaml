@@ -71,6 +71,7 @@ name_mapping:
   String: 'Str'
   Image: 'Img'
   Odometry: 'Odom'
+  Hardware: 'HW'
 
 ## additional name_mapping
 ## this dict is appended on name_mapping. 

@@ -128,7 +128,7 @@ public:
 	{{data.ResultConstantsDef}}
 
 	UPROPERTY()
-	int8 Status = 0;
+	int8 GRResStatus = 0;
 
 	{{data.ResultTypes}}
 
@@ -139,13 +139,13 @@ public:
 
 	void SetFromROS2(const {{data.Group}}__action__{{data.NameCap}}_GetResult_Response& in_ros_data)
 	{
-		Status = in_ros_data.status;
+		GRResStatus = in_ros_data.status;
     	{{data.ResultSetFromROS2}}
 	}
 
 	void SetROS2({{data.Group}}__action__{{data.NameCap}}_GetResult_Response& out_ros_data) const
 	{
-		out_ros_data.status = Status;
+		out_ros_data.status = GRResStatus;
     	{{data.ResultSetROS2}}
 	}
 };
