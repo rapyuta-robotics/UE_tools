@@ -58,7 +58,7 @@ def build_ros2(
     GrabLibs(rosInstall, pluginPathRosLib, allowed_spaces)
     CleanLibs(pluginPathRosLib, not_allowed_spaces)
 
-    RenameLibsWithVersion(pluginPathRosLib)
+    RenameLibsWithVersion(pluginPathRosLib, projectPath)
     SetRPATH(pluginPathRosLib)
     InvalidateBinaries(projectPathBinaries, pluginPathBinaries, pluginPathBuildCS)
 

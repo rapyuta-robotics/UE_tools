@@ -17,7 +17,7 @@ UE_tools
         Generate UE code and copy to target plugins. Only valid with --type==pkgs
     - --config:
 
-        config file path. please refer default_config.yaml.
+        config file path. please refer default_config.yaml. you can provide multiple config file and parameters are overwritten by later config files.
 
 *need to build core lib once with --type==base to build other pkgs.
 *this helper script uses [ROS2 Lib Update](#ros2-lib-update) and [Interface update](#interface-update) internally.
