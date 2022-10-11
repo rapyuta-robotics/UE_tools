@@ -4,7 +4,7 @@
 #pragma once
 
 // UE
-#include <CoreMinimal.h>
+#include "CoreMinimal.h"
 
 // ROS
 #include "{{data.Group}}/srv/{{data.Name}}.h"
