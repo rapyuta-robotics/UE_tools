@@ -81,5 +81,5 @@ name_mapping:
 
 
 # msgs which is not copied to project.
-black_list_msgs:
-  - 'ROS2WStr' # can't handle wstring in UE.
+# black_list_msgs:
+#   - 'ROS2WStr' # can't handle wstring in UE.

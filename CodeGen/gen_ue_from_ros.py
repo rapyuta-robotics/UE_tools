@@ -116,7 +116,7 @@ TYPE_CONVERSION = {
     'float32': 'float',
     'float64': 'double',
     'string': 'FString',
-    # 'wstring': 'std::u16string', #donot works
+    'wstring': 'FString', 
     'geometry_msgs/Vector3':'FVector',
     'geometry_msgs/Point': 'FVector',
     'geometry_msgs/Quaternion': 'FQuat',
@@ -149,8 +149,6 @@ def convert_to_ue_type(t, pkgs_name_mapping, name_mapping):
         size = tmp[1].replace('<=','')
         t = f'TArray<{convert_to_ue_type(tmp[0], pkgs_name_mapping, name_mapping)[0]}>'
     elif t in TYPE_CONVERSION :
-        if t == 'wstring':
-            logger.error('wstring is not supported. this will cause compilation error in UE.' + str(original_names) + ' (get_ue_var_name)')
         t = TYPE_CONVERSION[t]
     elif t in ROS_BUILDIN_TYPES:
         pass
@@ -285,9 +283,9 @@ def setter(r, v_ue, v_ros, size, ros_msg_type):
 
         body = '(' + v_ros_str + ', ' + v_ue + ', ' + size_str + ')'
         tail = ''
-        if r2 == 'FVector':
+        if r2 in ['FVector', 'FString' ]:
             head = r2[1:] + func_name_str + '<' + ros_msg_type + '>'
-        elif r2 in ['FQuat', 'FTransform', 'FString']:
+        elif r2 in ['FQuat', 'FTransform']:
             head = r2[1:] + func_name_str
         else: # compound
             head = func_name_str + '<' + ros_msg_type + ', ' + r2 + '>'
@@ -297,9 +295,9 @@ def setter(r, v_ue, v_ros, size, ros_msg_type):
         head = v_ue
         body = ' = UROS2Utils::' + r[1:] + func_name_str
         tail = '(' + v_ros_str + ')' 
-        if r == 'FVector':
+        if r in ['FVector', 'FString' ]:
             body += '<' + ros_msg_type + '>'
-        elif r in ['FQuat', 'FTransform', 'FString']:
+        elif r in ['FQuat', 'FTransform']:
             pass
         elif r in ROS_BUILDIN_TYPES or r in TYPE_CONVERSION.values():
             body = ' = '
@@ -369,9 +367,9 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
 
             
         body = '(' + v_ue + ', ' + v_ros_str + ', ' + size_str + ')'
-        if r2 == 'FVector':
+        if r2 in ['FVector', 'FString']:
             head += r2[1:] + func_name_str + '<' + ros_msg_type + '>'
-        elif r2 in ['FQuat', 'FTransform', 'FString']:
+        elif r2 in ['FQuat', 'FTransform']:
             head += r2[1:] + func_name_str
         else: # compound
             head += func_name_str + '<' + ros_msg_type + ', ' + r2 + '>'
@@ -384,6 +382,7 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
             body = ' = ' + body + '<' + ros_msg_type + '>'
         elif r == 'FString':
             head = ''
+            body += '<' + ros_msg_type + '>'
             tail = '(' + v_ue + ', ' + v_ros_str + ')'
         elif r in ['FQuat', 'FTransform']:
             body = ' = ' + body
@@ -833,6 +832,9 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
                     else:
                         if ros_msg_type == 'string':
                             ros_msg_type = 'rosidl_runtime_c__String'
+                            ros_msg_sequence_type = ros_msg_type + '__Sequence'
+                        elif ros_msg_type == 'wstring':
+                            ros_msg_type = 'rosidl_runtime_c__U16String'
                             ros_msg_sequence_type = ros_msg_type + '__Sequence'
                         else:
                             ros_msg_sequence_type = 'rosidl_runtime_c__' + ros_msg_type + '__Sequence'

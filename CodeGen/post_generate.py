@@ -6,7 +6,7 @@ import glob
 
 # temporary black list msgs which can't be parsed properly
 DEFAULT_BLACK_LIST = [
-    "ROS2WStr", # can't handle wstring in UE.
+    # "ROS2WStr", # can't handle wstring in UE.
     
     # # array parser issue
     # "ROS2CancelGoalSrv",
