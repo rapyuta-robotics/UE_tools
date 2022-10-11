@@ -551,12 +551,7 @@ def get_constructors(r, v_ue, size):
     if not r.startswith('TArray'):
         return ''
 
-    for_loop_fixed = 'for (auto i = 0; i < ' + str(size) + '; ++i)\n\t\t{\n\t\t\t'
-    for_loop_closing = '}\n\n\t\t'
-
-    c = v_ue + '.SetNumZeroed(' + str(size) + ');\n\n\t\t'
-
-    return for_loop_fixed + c + for_loop_closing
+    return v_ue + '.SetNumZeroed(' + str(size) + ');\n\n\t\t'
         
 # scan msg, srv and action files to find all types present in the given target_paths
 def get_types(target_paths):
