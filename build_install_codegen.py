@@ -16,7 +16,7 @@ def managed_chdir(path):
     finally:
         os.chdir(prev_path)
 
-def load_from_conifgs(file_names):
+def load_from_configs(file_names):
 
     # overwritten params
     dependency = {}
