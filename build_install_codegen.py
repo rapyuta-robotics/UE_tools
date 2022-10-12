@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-        target, black_list, dependency, name_mapping = load_from_conifgs(config_files)
+        target, black_list, dependency, name_mapping = load_from_configs(config_files)
 
     # build lib and copy to ue project
     if args.build:
