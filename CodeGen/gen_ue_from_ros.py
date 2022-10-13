@@ -522,9 +522,21 @@ def get_headers(type_ue, type_ros, types_dict):
 # input: k=struct_name, v=[type, name, value]
 # return: definition_str, getter_str
 def get_constants(k, v):
-    #   static constexpr int sample = 10;
     type_name = convert_to_ue_type(v[0], {}, {})[0] 
-    cdef = '\tstatic constexpr ' + type_name + ' ' + v[1] + ' = ' + v[2] + ';\n'
+    struct_name = 'FROS' + k + '::'
+    constant_name = v[2].strip()
+    cdef = ''
+    if type_name == 'FString':
+        head = 'TEXT(' 
+        tail = ')'
+        if not constant_name.startswith("\""):
+            head += "\""
+            tail =  "\"" + tail
+        constant_name = head + constant_name + tail
+        cdec = '\tstatic const FString ' + v[1] + ';\n'
+        cdef = '\tconst FString ' + struct_name + v[1] + ' = ' + constant_name + ';\n'
+    else:
+        cdec = '\tstatic constexpr ' + type_name + ' ' + v[1] + ' = ' + constant_name + ';\n'
 
     # UFUNCTION(BlueprintCallable)
     # static int sample()
@@ -539,7 +551,7 @@ def get_constants(k, v):
         '{\n\t\t' + \
             'return FROS' + k + '::' + v[1] + ';\n\t' + \
         '}\n\t'
-    return cdef, cgetter
+    return cdec, cgetter, cdef
 
 def get_constructors(r, v_ue, size):
     
@@ -790,7 +802,7 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
             set_from_ros2 = ''
             constructor = ''
             headers = ''
-            constants = {'def': '', 'getter': ''}
+            constants = {'dec': '', 'getter': '', 'def': ''}
             logger.debug('get_types_cpp: parse input {} {}'.format(key, value))
             new_key = update_msg_name_full(key, pkgs_name_mapping, name_mapping)
             for v in value:
@@ -799,9 +811,10 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
                 # parse constants
                 if len(v) >= 3:
                     logger.debug("parse constant: {}".format(v))
-                    cdef, cgetter = get_constants(new_key, v)
-                    constants['def'] += cdef
+                    cdec, cgetter, cdef = get_constants(new_key, v)
+                    constants['dec'] += cdec
                     constants['getter'] += cgetter
+                    constants['def'] += cdef
                     continue
 
                 res_ue = get_ue_var_name(v, pkgs_name_mapping, name_mapping)
@@ -1008,8 +1021,9 @@ def codegen(module, dependency, target, name_mapping):
                         info['SetROS2'] = types_cpp[group_name][2]
                         info['Constructor'] = types_cpp[group_name][3]
                         info['Headers'] = types_cpp[group_name][4]
-                        info['ConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['ConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['ConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 
@@ -1021,8 +1035,9 @@ def codegen(module, dependency, target, name_mapping):
                         info['ReqSetROS2'] = types_cpp[group_name][2]
                         info['ReqConstructor'] = types_cpp[group_name][3]
                         info['ReqHeaders'] = types_cpp[group_name][4]
-                        info['ReqConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ReqConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['ReqConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['ReqConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 
@@ -1033,8 +1048,9 @@ def codegen(module, dependency, target, name_mapping):
                         info['ResSetROS2'] = types_cpp[group_name][2]
                         info['ResConstructor'] = types_cpp[group_name][3]
                         info['ResHeaders'] = types_cpp[group_name][4]
-                        info['ResConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ResConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['ResConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['ResConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 
@@ -1048,8 +1064,9 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.goal.')
                         info['GoalConstructor'] = types_cpp[group_name][3]
                         info['GoalHeaders'] = types_cpp[group_name][4]
-                        info['GoalConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['GoalConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['GoalConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['GoalConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 
@@ -1062,8 +1079,9 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.result.')
                         info['ResultConstructor'] = types_cpp[group_name][3]
                         info['ResultHeaders'] = types_cpp[group_name][4]
-                        info['ResultConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['ResultConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['ResultConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['ResultConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 
@@ -1076,8 +1094,9 @@ def codegen(module, dependency, target, name_mapping):
                             'out_ros_data.', 'out_ros_data.feedback.')
                         info['FeedbackConstructor'] = types_cpp[group_name][3]
                         info['FeedbackHeaders'] = types_cpp[group_name][4]
-                        info['FeedbackConstantsDef'] = types_cpp[group_name][5]['def']
+                        info['FeedbackConstantsDec'] = types_cpp[group_name][5]['dec']
                         info['FeedbackConstantsGetter'] = types_cpp[group_name][5]['getter']
+                        info['FeedbackConstantsDef'] = types_cpp[group_name][5]['def']
                     else:
                         print_group_name_info(group_name)
 

@@ -5,6 +5,8 @@
 
 #include "Kismet/GameplayStatics.h"
 
+{{data.ConstantsDef}}
+
 void UROS2{{data.UEName}}Msg::Init()
 {
 	{{data.Group}}__msg__{{data.NameCap}}__init(&{{data.Name}}_msg);

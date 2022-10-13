@@ -3,6 +3,10 @@
 
 #include "Srvs/ROS2{{data.UEName}}.h"
 
+
+{{data.ReqConstantsDef}}
+{{data.ResConstantsDef}}
+
 const rosidl_service_type_support_t* UROS2{{data.UEName}}Srv::GetTypeSupport() const
 {
     return ROSIDL_GET_SRV_TYPE_SUPPORT({{data.Group}}, srv, {{data.NameCap}});

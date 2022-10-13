@@ -25,7 +25,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}
 	GENERATED_BODY()
 
 public:
-	{{data.ConstantsDef}}
+	{{data.ConstantsDec}}
 
 	{{data.Types}}
 

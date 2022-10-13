@@ -27,7 +27,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}Req
 	GENERATED_BODY()
 
 public:
-	{{data.ReqConstantsDef}}
+	{{data.ReqConstantsDec}}
 
 	{{data.ReqTypes}}
 
@@ -53,7 +53,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}Res
 	GENERATED_BODY()
 
 public:
-	{{data.ResConstantsDef}}
+	{{data.ResConstantsDec}}
 
 	{{data.ResTypes}}
 

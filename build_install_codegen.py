@@ -73,7 +73,9 @@ def load_from_config(file_name, dependency, name_mapping):
         sys.exit(0)
    
     if 'repos' in config:
-        os.system('vcs import --repos --debug --recursive BuildROS2/ros2_ws/src < ' + os.path.join(home, config['repos']))
+        os.system('vcs import --repos --debug BuildROS2/ros2_ws/src < ' + os.path.join(home, config['repos']))
+        # os.system('vcs pull BuildROS2/ros2_ws/src')
+
 
     # target
     if 'target_pkgs' in config:

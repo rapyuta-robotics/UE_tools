@@ -3,6 +3,10 @@
 
 #include "Actions/ROS2{{data.UEName}}.h"
 
+{{data.GoalConstantsDef}}
+{{data.ResultConstantsDef}}
+{{data.FeedbackConstantsDef}}
+
 const rosidl_action_type_support_t* UROS2{{data.UEName}}Action::GetTypeSupport() const
 {
     return ROSIDL_GET_ACTION_TYPE_SUPPORT({{data.Group}}, {{data.NameCap}});
