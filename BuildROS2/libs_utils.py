@@ -1,4 +1,4 @@
-import os, sys, shutil, re
+import os, sys, shutil, re, glob
 from subprocess import check_output
 
 # this script forces to link libraries again on next IDE run
@@ -132,7 +132,6 @@ def CleanIncludes(dir, not_allowed_spaces):
 
 def RunCommandForEveryLib(folderName, commandArgsList):
     print('>', ' '.join(commandArgsList))
-
     for fullName in GetLibs(folderName):
         resultRaw = ''
         command = commandArgsList
@@ -142,9 +141,9 @@ def RunCommandForEveryLib(folderName, commandArgsList):
         except Exception:
             print('[Error] file:', fullName)
     
-def ReplaceSonameWithFileRemove(folderName, soname, fileName):
-    libFileNameNew = folderName + '/' + soname
-    libFileNameOld = folderName + '/' + fileName
+def ReplaceSonameWithFileRemove(folderName, libDir, soname, fileName):
+    libFileNameNew = libDir + '/' + soname
+    libFileNameOld = libDir + '/' + fileName
     # leave only one file, starting from *.so.*, but rename it after all to *.so
     if libFileNameNew != libFileNameOld and os.path.exists(libFileNameOld):
         if os.path.exists(libFileNameNew):
@@ -153,7 +152,9 @@ def ReplaceSonameWithFileRemove(folderName, soname, fileName):
         os.rename(libFileNameOld, libFileNameNew)
 
     command = 'patchelf --set-soname ' + soname + ' ' + libFileNameNew
+    print('> ', command)
     os.system(command)
+
     RunCommandForEveryLib(folderName, ['patchelf', '--replace-needed', fileName, soname])
 
 # UE4.27 can't deal with so libs with version (for example libmyname.so.2.0.3)
@@ -164,28 +165,28 @@ def ReplaceSonameWithFileRemove(folderName, soname, fileName):
 # +++LibName = LibName.Split('.')[0];
 # but it's not a proper fix, since we provide plugin for end users, and can't change their UE4.27
 # So solution can be run renaming for all of this libraries 'SONAME' and links to this libraries inside all others
-def RenameLibsWithVersion(folderName):
+def RenameLibsWithVersion(pluginPath, projectPath):
     print('Looking for libs with version...')
     versionMarker = '.so.'
     libsReplacements = dict()
-
-    for fullName in GetLibs(folderName):
+    # map {libname:dir}
+    lib_files = {os.path.basename(x):os.path.dirname(x) for x in glob.glob(os.path.join(projectPath, 'Plugins/**/*.so'), recursive=True)}
+    for fullName in GetLibs(pluginPath):
         lddInfoRaw = os.popen('ldd ' + fullName).read()
         for rawInfoLine in lddInfoRaw.split('\n'):
             if versionMarker in rawInfoLine and 'not found' in rawInfoLine:
                 libNameVersioning = rawInfoLine.split('=>')[0].lstrip().rstrip()
-                libName = libNameVersioning.split(versionMarker)[0] + '.so'
-                potentialFullName = folderName + '/' + libName
+                soname = libNameVersioning.split(versionMarker)[0] + '.so'
 
-                if os.path.exists(potentialFullName):
-                    libsReplacements[libNameVersioning] = libName
+                if soname in lib_files:
+                    libsReplacements[libNameVersioning] = [soname, lib_files[soname]]
                 else:
-                    print('[Error] Failed to find potential lib:', potentialFullName)
-
+                    print('[Error] Failed to find potential lib:', soname)
+                
     libsReplacements = dict(sorted(libsReplacements.items())) 
     print('Libs with version which needed to be renamed: {}'.format(libsReplacements))
-    for libNameVersioning, libName in libsReplacements.items():
-        ReplaceSonameWithFileRemove(folderName, libName, libNameVersioning)
+    for libNameVersioning, soname_and_dir in libsReplacements.items():
+        ReplaceSonameWithFileRemove(pluginPath, soname_and_dir[1], soname_and_dir[0], libNameVersioning)
 
 # this arguments order like '--remove-rpath' and  '--force-rpath --set-rpath' is a hack
 # check https://github.com/NixOS/patchelf/issues/94

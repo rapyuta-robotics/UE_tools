@@ -2,6 +2,6 @@
 */__pycache__/*
 CodeGen/.vscode/
 CodeGen/*.log
-CodeGen/*.h
-CodeGen/*.cpp
+CodeGen/*/*.h
+CodeGen/*/*.cpp
 BuildROS2/ros2_ws/

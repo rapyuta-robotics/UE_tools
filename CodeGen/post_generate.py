@@ -5,18 +5,18 @@ import shutil
 import glob
 
 # temporary black list msgs which can't be parsed properly
-BLACK_LIST = [
-    "ROS2WStringMsg", # can't handle wstring in UE.
+DEFAULT_BLACK_LIST = [
+    # "ROS2WStr", # can't handle wstring in UE.
     
-    # array parser issue
-    "ROS2CancelGoalSrv",
-    "ROS2MeshMsg",
-    "ROS2SolidPrimitiveMsg" 
+    # # array parser issue
+    # "ROS2CancelGoalSrv",
+    # "ROS2MeshMsg",
+    # "ROS2SolidPrimitiveMsg" 
     
-    "ROS2TFMessageMsg", # memcpy/free issues. fixed version in rclUE but can't autogenerate.
+    # "ROS2TFMessageMsg", # memcpy/free issues. fixed version in rclUE but can't autogenerate.
 ]
 
-def check_blacklist(file_name, black_list=BLACK_LIST):
+def check_blacklist(file_name, black_list=DEFAULT_BLACK_LIST):
     for b in black_list:
         if b in file_name:
             return True
@@ -27,18 +27,18 @@ def copy_files(target_path, type_name, extension, black_list):
     target_path = os.path.join(target_path, f'{type_name}s')
     os.makedirs(target_path, exist_ok=True)
     print('Copy generated files to ' + target_path)
-    for file_name in glob.glob(f'*{type_name}{extension}'):
+    for file_name in glob.glob(f'{type_name}s/*{extension}'):
         if check_blacklist(file_name, black_list):
             print(' *' + file_name + ' is in BLACK_LIST and not copied.')
             continue
         shutil.copy(os.path.join(current_dir, file_name), target_path)
         print(' Copied ' + file_name)
 
-def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, ue_target_ros_wrapper_path, black_list=BLACK_LIST):
+def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black_list=DEFAULT_BLACK_LIST):
 
     ue_target_src_path = os.path.join(ue_project_path, 'Plugins', ue_plugin_folder_name, 'Source')
-    ue_public_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Public', ue_target_ros_wrapper_path)
-    ue_private_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Private', ue_target_ros_wrapper_path)
+    ue_public_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Public')
+    ue_private_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Private')
     
     # Copy UE wrapper of ros src
     for type_name in ['Action','Srv','Msg']:
@@ -66,18 +66,13 @@ if __name__ == "__main__":
         help="UE plugin folder name, eg: rclUE",
         default='rclUE'
     )
-    parser.add_argument(
-        "--ue_target_ros_wrapper_path",
-        help="Target ros wrapper relative folder path under Source's Private/Public, eg: ROS2",
-        default=''
-    )
+
     args = parser.parse_args()
     
     copy_ros_to_ue(      
         args.ue_proj_path, 
         args.ue_plugin_name, 
         args.ue_plugin_folder_name,
-        args.ue_target_ros_wrapper_path,
-        BLACK_LIST
+        DEFAULT_BLACK_LIST
     )
     
