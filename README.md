@@ -50,6 +50,7 @@ To use new msg in UnrealEngine Project,
 Python scripts to build ros2 foxy pkgs from [source](https://docs.ros.org/en/foxy/Installation/Ubuntu-Development-Setup.html) with necessary changes to be used inside UnrealEngine project. Generated lib and header files are used inside UnrealEngine project, mainly by [rclUE](https://github.com/rapyuta-robotics/rclUE).
 
 ### Patches
+We apply patch for ros2 to avoid setting LD_LIBRARY_PATH environment variable to the dynamic libs paths.
 You can find changes in BuildROS2/patches
 - rcpputils: return library names instead of empty string to make it use without setting env variable LD_LIBRARY_PATH.
 - rcutils: comment out \_\_STDC_VERSION\_\_ since it is not always defined.
@@ -89,6 +90,8 @@ You can find changes in BuildROS2/patches
     \* **Note**
     
     - Reinstall python package due to issues https://github.com/ros-visualization/qt_gui_core/issues/212:
+    - [Apply patch](#patches) Apply patch for ros2 to avoid setting LD_LIBRARY_PATH environment variable to the dynamic libs paths
+    - 
 
 
 - **build_and_install_ros2_pkgs.py**: 
@@ -150,7 +153,6 @@ Python script to generate UE4 .h and .cpp files for UnrealEngine to interface wi
 
 ### Limitation
 - only works with ROS2 message interface (in particular, ROS had built-in data types, such as `time`, defined in libraries and ROS2 now implements those as messages)
-- code generation for nested arrays in messages is not supported
 - currently it has only been tested with messages used in RR projects
 - not all types are supported in UE4 Blueprint (e.g. `double`): `get_types_cpp` does the check, however it is currently checking against a list of unsupported types that have been encountered (and there's more that are not checked against, so if the code fails compilation due to this problem, the type in question should be currently be added to the list). The alternative, and better implementation, would check for supported types (but must be careful with various aliases, like `int` and `int32`
 - fixed size array comes with TArray<>. User should reserve array with proper size by themselves.
