@@ -224,7 +224,8 @@ if __name__ == '__main__':
                 buildType = args.type,
                 allowed_spaces = allowed_spaces,
                 not_allowed_spaces = not_allowed_spaces,
-                pkgs = pkgs
+                pkgs = pkgs,
+                remove = args.remove
             )
 
     # codegen
@@ -248,5 +249,6 @@ if __name__ == '__main__':
                 ue_project_path = projectPath, 
                 ue_plugin_name = pluginName, 
                 ue_plugin_folder_name = pluginFolderName, 
-                black_list = black_list
+                black_list = black_list,
+                remove = args.remove
             )
