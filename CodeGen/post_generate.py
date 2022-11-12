@@ -22,9 +22,13 @@ def check_blacklist(file_name, black_list=DEFAULT_BLACK_LIST):
             return True
     return False
 
-def copy_files(target_path, type_name, extension, black_list):
+def copy_files(target_path, type_name, extension, black_list, remove=True):
     current_dir = os.getcwd()
     target_path = os.path.join(target_path, f'{type_name}s')
+    if remove:
+        if os.path.exists(target_path):
+            shutil.rmtree(target_path)
+
     os.makedirs(target_path, exist_ok=True)
     print('Copy generated files to ' + target_path)
     for file_name in glob.glob(f'{type_name}s/*{extension}'):
