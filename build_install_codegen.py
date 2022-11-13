@@ -2,10 +2,15 @@
 
 import sys
 import os
+import shutil
 import argparse
 from numpy import isin
 import yaml
 from contextlib import contextmanager
+
+WS_PATH = os.path.join(os.getcwd(), 'BuildROS2/ros2_ws')
+SRC_PATH = os.path.join(WS_PATH, 'src')
+ADDITIONAL_PKG_PATH = os.path.join(WS_PATH, 'src/pkgs')
 
 @contextmanager
 def managed_chdir(path):
@@ -16,7 +21,7 @@ def managed_chdir(path):
     finally:
         os.chdir(prev_path)
 
-def load_from_configs(file_names):
+def load_from_configs(file_names, remove = True):
 
     # overwritten params
     dependency = {}
@@ -36,8 +41,20 @@ def load_from_configs(file_names):
     for file in file_names:
         UEPath, projectPath, pluginName, \
             pluginFolderName, targetThirdpartyFolderName, \
-                target, black_list, dependency, name_mapping = load_from_config(file, dependency, name_mapping)
+                target, black_list, dependency, name_mapping, repos = load_from_config(file, dependency, name_mapping)
     
+    # cleanup
+    if remove:
+        if os.path.exists(ADDITIONAL_PKG_PATH):
+            shutil.rmtree(ADDITIONAL_PKG_PATH)
+
+    # pull
+    home = os.environ['HOME']
+    if repos:
+        if not os.path.exists(ADDITIONAL_PKG_PATH):
+            os.makedirs(ADDITIONAL_PKG_PATH)
+        os.system('vcs import --repos --debug ' + ADDITIONAL_PKG_PATH + ' < ' + os.path.join(home, repos))
+
     return UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
             target, black_list, dependency, name_mapping
@@ -71,12 +88,9 @@ def load_from_config(file_name, dependency, name_mapping):
     else:
         print('args must be in config')
         sys.exit(0)
-   
-    if 'repos' in config:
-        os.system('vcs import --repos --debug BuildROS2/ros2_ws/src < ' + os.path.join(home, config['repos']))
-        # os.system('vcs pull BuildROS2/ros2_ws/src')
-
-
+    
+    repos = config['repos'] if 'repos' in config else None
+    
     # target
     if 'target_pkgs' in config:
         if isinstance(config['target_pkgs'], dict):
@@ -88,7 +102,6 @@ def load_from_config(file_name, dependency, name_mapping):
         print('target_pkgs must be in config')
         sys.exit(0)
 
-        
     # blacklist
     black_list = []
     if 'black_list_msgs' in config:
@@ -138,7 +151,7 @@ def load_from_config(file_name, dependency, name_mapping):
     
     return UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-            target, black_list, dependency, name_mapping
+            target, black_list, dependency, name_mapping, repos
 
 
 
@@ -170,6 +183,11 @@ if __name__ == '__main__':
         nargs='*',
         help='config files path'
     )
+    parser.add_argument(
+        '--remove', 
+        help='Delete source before pull. Valid only with type==pkgs',
+        action='store_true'
+    )
 
     args = parser.parse_args()
 
@@ -179,7 +197,7 @@ if __name__ == '__main__':
 
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-        target, black_list, dependency, name_mapping = load_from_configs(config_files)
+        target, black_list, dependency, name_mapping = load_from_configs(config_files, args.remove and args.type == 'pkgs')
 
     # build lib and copy to ue project
     if args.build:
@@ -188,11 +206,10 @@ if __name__ == '__main__':
             sys.path.append(os.getcwd())
             from BuildROS2.build_and_install_ros2 import build_ros2
             from BuildROS2.build_and_install_ros2_base import DEFAULT_NOT_ALLOWED_SPACES, DEFAULT_ALLOWED_SPACES
-                        
             if args.type == 'base':
                 allowed_spaces = DEFAULT_ALLOWED_SPACES
                 not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES
-                pkgs = ['ue_msgs']
+                pkgs = []
             elif args.type == 'pkgs':
                 allowed_spaces = list(target.keys())
                 not_allowed_spaces = []
@@ -207,7 +224,8 @@ if __name__ == '__main__':
                 buildType = args.type,
                 allowed_spaces = allowed_spaces,
                 not_allowed_spaces = not_allowed_spaces,
-                pkgs = pkgs
+                pkgs = pkgs,
+                remove = args.remove
             )
 
     # codegen
@@ -231,5 +249,6 @@ if __name__ == '__main__':
                 ue_project_path = projectPath, 
                 ue_plugin_name = pluginName, 
                 ue_plugin_folder_name = pluginFolderName, 
-                black_list = black_list
+                black_list = black_list,
+                remove = args.remove
             )

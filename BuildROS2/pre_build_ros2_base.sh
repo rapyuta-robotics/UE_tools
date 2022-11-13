@@ -74,12 +74,25 @@ sudo apt install --no-install-recommends -y \
   libcunit1-dev
 
 
+echo "
+#######################
+Get ROS2 source 
+########################
+"
 ## Get ROS2 code
 ROS2_WS=$(pwd)/ros2_ws
 mkdir -p $ROS2_WS/src
 cd $ROS2_WS
 wget https://raw.githubusercontent.com/ros2/ros2/foxy/ros2.repos
 vcs import src < ros2.repos
+
+echo "
+##############################################
+Ignore ros1_bridge and example_interfaces. 
+###############################################
+"
+touch src/ros2/ros1_bridge/COLCON_IGNORE
+touch src/ros2/example_interfaces/COLCON_IGNORE
 
 # Install dependencies using rosdep
 #sudo apt upgrade

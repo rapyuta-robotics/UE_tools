@@ -4,6 +4,13 @@ UE_PATH=$1
 ROS2_WS=$2
 PKGS=$3
 
+# cleanup
+for d in $3 ; 
+do
+    rm -r  $2/build/$d
+    rm -r  $2/install/$d
+done
+
 export LANG=en_US.UTF-8
 
 # export ROS_DOMAIN_ID=10

@@ -13,6 +13,7 @@ def build_ros2(
     allowed_spaces = [],
     not_allowed_spaces = [],
     pkgs = [],
+    remove = True
 ):
     start = time.time()
     
@@ -41,6 +42,12 @@ def build_ros2(
     print('Building ros ' + buildType + '...')
     os.system('chmod +x ' + buildRosScript)
     os.system('bash ' + buildRosScript + ' ' + UEPath + ' "' + ' '.join(pkgs) + '"')
+
+    if remove:
+        if os.path.exists(pluginPathRosInclude):
+            shutil.rmtree(pluginPathRosInclude)
+        if os.path.exists(pluginPathRosLib):
+            shutil.rmtree(pluginPathRosLib)
 
     os.makedirs(pluginPathRosInclude, exist_ok=True)
     os.makedirs(pluginPathRosLib, exist_ok=True)

@@ -22,9 +22,16 @@ def check_blacklist(file_name, black_list=DEFAULT_BLACK_LIST):
             return True
     return False
 
-def copy_files(target_path, type_name, extension, black_list):
+def copy_files(target_path, type_name, extension, black_list, remove=True):
     current_dir = os.getcwd()
     target_path = os.path.join(target_path, f'{type_name}s')
+    if remove and os.path.exists(target_path):
+        files = glob.glob(f'{target_path}/*{extension}')
+        for f in files:
+            print(f)
+            if f != f'{target_path}/ROS2Generic{type_name}{extension}':
+                os.remove(f)
+
     os.makedirs(target_path, exist_ok=True)
     print('Copy generated files to ' + target_path)
     for file_name in glob.glob(f'{type_name}s/*{extension}'):
@@ -34,7 +41,7 @@ def copy_files(target_path, type_name, extension, black_list):
         shutil.copy(os.path.join(current_dir, file_name), target_path)
         print(' Copied ' + file_name)
 
-def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black_list=DEFAULT_BLACK_LIST):
+def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black_list=DEFAULT_BLACK_LIST, remove=True):
 
     ue_target_src_path = os.path.join(ue_project_path, 'Plugins', ue_plugin_folder_name, 'Source')
     ue_public_path = os.path.join(ue_target_src_path, ue_plugin_name, 'Public')
@@ -42,8 +49,8 @@ def copy_ros_to_ue(ue_project_path, ue_plugin_name, ue_plugin_folder_name, black
     
     # Copy UE wrapper of ros src
     for type_name in ['Action','Srv','Msg']:
-        copy_files(ue_public_path, type_name, '.h', black_list)
-        copy_files(ue_private_path, type_name,'.cpp', black_list)
+        copy_files(ue_public_path, type_name, '.h', black_list, remove)
+        copy_files(ue_private_path, type_name,'.cpp', black_list, remove)
         
     return 
 
