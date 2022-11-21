@@ -13,7 +13,7 @@ from pathlib import Path
 
 import logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     handlers=[
         logging.FileHandler("codegen_debug.log"),
         logging.StreamHandler()
@@ -220,6 +220,19 @@ def update_msg_name(in_pkg, in_type, pkgs_name_mapping, name_mapping):
 def snake_to_pascal(in_text):
     return ''.join([c[0].upper()+c[1:] for c in in_text.replace('_', ' ').replace('/', ' ').split()])
 
+def camel_to_snake(s):
+    arr = []
+    for i in range(len(s)):
+        temp = s[i].lower()
+        if s[i].isupper() and \
+            ( # add _ if before or after charactor is lowercase or digit
+                (i > 0         and (s[i-1].islower() or s[i-1].isdigit())) or 
+                (i != len(s)-1 and (s[i+1].islower() or s[i+1].isdigit()))
+            ): # add _ if before or after charactor is lowercase
+            temp = '_' + temp
+        arr.append(temp)
+
+    return ''.join(arr).lstrip('_')
 
 def remove_underscore(in_text):
     return in_text.replace("_", "")
@@ -361,8 +374,11 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
             v_ros_size = v_ros_str.replace('.data[i]', '')                
             size_str = v_ue + '.Num()'
             v_ros_str = v_ros_str.replace('data[i]', 'data')
-            head = 'UROS2Utils::ROSSequenceResourceAllocation' + \
-                    '<' + ros_msg_sequence_type + '>(' +  v_ros_size + ', ' + size_str + ');' + \
+            # head = 'UROS2Utils::ROSSequenceResourceAllocation' + \
+            #         '<' + ros_msg_sequence_type + '>(' +  v_ros_size + ', ' + size_str + ');' + \
+            #         '\n\t\t' + head
+            head = ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
+                    ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ');' + \
                     '\n\t\t' + head
 
             
@@ -516,6 +532,25 @@ def get_headers(type_ue, type_ros, types_dict):
         file_name = 'ROS2' + u[4:] + '.h' #len(FROS2)=4
         dir_name = str.capitalize(msg_type) + 's'
         res = '#include \"' + os.path.join(dir_name, file_name) + '\"\n'
+
+    # headers for sequences
+    if type_ue.startswith('TArray'):
+        res += '#include \"'
+        if '/' in type_ros:
+            msg_type = get_msg_type(type_ros, types_dict)
+            r = ('__' + msg_type + '__').join(r.split('/'))
+            seq_type_arr = [camel_to_snake(v) for v in r.split('__')]
+            seq_type_arr.insert(2, 'detail')
+            res += '/'.join(seq_type_arr) + '__functions.h'
+        else:
+            if r == 'string':
+                res += 'rosidl_runtime_c/string_functions.h'
+            elif r == 'wstring':
+                res += 'rosidl_runtime_c/u16string_functions.h'
+            else:
+                res += 'rosidl_runtime_c/primitives_sequence_functions.h'
+            
+        res += '\"\n'
 
     return res
 
@@ -1133,6 +1168,7 @@ def codegen(module, dependency, target, name_mapping):
                 file_h.close()
                 file_cpp.close()
 
+    # this seems not work property. Temporary relay on pre-commit hook on each repo.
     os.system('./format.sh') #apply clang-format
 
 if __name__ == "__main__":
