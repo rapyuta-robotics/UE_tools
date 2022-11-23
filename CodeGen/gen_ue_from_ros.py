@@ -374,17 +374,26 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
             v_ros_size = v_ros_str.replace('.data[i]', '')                
             size_str = v_ue + '.Num()'
             v_ros_str = v_ros_str.replace('data[i]', 'data')
-            # head = 'UROS2Utils::ROSSequenceResourceAllocation' + \
-            #         '<' + ros_msg_sequence_type + '>(' +  v_ros_size + ', ' + size_str + ');' + \
-            #         '\n\t\t' + head
-            head = ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
-                    ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ');' + \
-                    '\n\t\t' + head
 
-            
+            # ref https://github.com/ros2/rosidl_typesupport_opensplice/blob/master/rosidl_typesupport_opensplice_c/resource/msg__type_support_c.cpp.em 
+            head = 'if (' + v_ros_size + '.data) {' + '\n\t\t' + \
+                   ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
+                    '}' + '\n\t\t' + \
+                   'if (!' + ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ')) {' + \
+                        'UE_LOG(LogTemp, Error, TEXT(\"failed to create array for field ' + v_ros_size + '  \"));' + \
+                    '}' + '\n\t\t' + head
+            # head = ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
+            #         ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ');' + \
+            #         '\n\t\t' + head
+
         body = '(' + v_ue + ', ' + v_ros_str + ', ' + size_str + ')'
-        if r2 in ['FVector', 'FString']:
+        if r2 in ['FVector']:
             head += r2[1:] + func_name_str + '<' + ros_msg_type + '>'
+        elif r2 in ['FString']:
+            t = r2[1:]
+            if ros_msg_type == 'rosidl_runtime_c__U16String':
+                t = 'U16String'
+            head += t + func_name_str
         elif r2 in ['FQuat', 'FTransform']:
             head += r2[1:] + func_name_str
         else: # compound
@@ -398,7 +407,10 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
             body = ' = ' + body + '<' + ros_msg_type + '>'
         elif r == 'FString':
             head = ''
-            body += '<' + ros_msg_type + '>'
+            t = r[1:]
+            if ros_msg_type == 'rosidl_runtime_c__U16String':
+                t = 'U16String'
+            body = 'UROS2Utils::' + t + func_name_str
             tail = '(' + v_ue + ', ' + v_ros_str + ')'
         elif r in ['FQuat', 'FTransform']:
             body = ' = ' + body
