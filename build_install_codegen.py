@@ -162,6 +162,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--type', 
+        choices=['base', 'pkgs'],
         help='base: build base ros2 libs. pkgs: build given ros2 pkgs',
         default='pkgs'
     )
