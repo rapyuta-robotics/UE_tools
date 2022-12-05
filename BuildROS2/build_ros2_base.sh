@@ -8,6 +8,11 @@ cleanup() {
     sudo rm -r -f $1/build_renamed $1/install_renamed
 }
 
+echo "
+##############################################
+cleanup workspace. 
+###############################################
+"
 cleanup $ROS2_WS
 
 export LANG=en_US.UTF-8
@@ -54,10 +59,11 @@ colcon build \
         "-DCMAKE_EXE_LINKER_FLAGS='$MY_LINKER_FLAGS'"\
         "-DCMAKE_CXX_FLAGS='-stdlib=libstdc++'"\
         "-DCMAKE_CXX_FLAGS='-fpermissive'"\
+        "-D__STDC_VERSION__='201112L'"\
         -DBUILD_TESTING=OFF \
     --no-warn-unused-cli \
     --packages-skip \
-        ros1_bridge \
+        # ros1_bridge \
         rviz_ogre_vendor qt_gui_cpp
         # demo_nodes_cpp intra_process_demo quality_of_service_demo_cpp\
         # rclc_examples \
