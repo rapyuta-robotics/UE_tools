@@ -13,7 +13,8 @@ def build_ros2(
     allowed_spaces = [],
     not_allowed_spaces = [],
     pkgs = [],
-    remove = True
+    remove = True,
+    rosdistro = 'foxy'
 ):
     start = time.time()
     
@@ -38,10 +39,15 @@ def build_ros2(
     rosInstall  = os.path.join(ros, 'install')
 
     allowed_spaces.extend(pkgs)
-    
+
+    if remove:
+        print('Cleanup workspace')
+        shutil.rmtree(ros)
+
+
     print('Building ros ' + buildType + '...')
     os.system('chmod +x ' + buildRosScript)
-    os.system('bash ' + buildRosScript + ' ' + UEPath + ' "' + ' '.join(pkgs) + '"')
+    os.system('bash ' + buildRosScript + ' ' + ros + ' ' + rosdistro + ' ' +  ' "' + ' '.join(pkgs) + '"')
 
     if remove:
         if os.path.exists(pluginPathRosInclude):

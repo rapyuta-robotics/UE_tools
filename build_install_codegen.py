@@ -189,6 +189,11 @@ if __name__ == '__main__':
         help='Delete source before pull. Valid only with type==pkgs',
         action='store_true'
     )
+    parser.add_argument(
+        '--rosdistro', 
+        choices=['foxy', 'humble'],
+        default='foxy'
+    )
 
     args = parser.parse_args()
 
@@ -226,7 +231,8 @@ if __name__ == '__main__':
                 allowed_spaces = allowed_spaces,
                 not_allowed_spaces = not_allowed_spaces,
                 pkgs = pkgs,
-                remove = args.remove
+                remove = args.remove,
+                rosdistro = args.rosdistro
             )
 
     # codegen
