@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 
 // ROS
-#include "{{data.Group}}/msg/{{data.Name}}.h"
+#include "{{data.Group}}/{{data.Group}}/msg/{{data.Name}}.h"
 
 // rclUE
 #include "Msgs/ROS2GenericMsg.h"

@@ -553,14 +553,14 @@ def get_headers(type_ue, type_ros, types_dict):
             r = ('__' + msg_type + '__').join(r.split('/'))
             seq_type_arr = [camel_to_snake(v) for v in r.split('__')]
             seq_type_arr.insert(2, 'detail')
-            res += '/'.join(seq_type_arr) + '__functions.h'
+            res += '/'.join([seq_type_arr[0]] + seq_type_arr) + '__functions.h'
         else:
             if r == 'string':
-                res += 'rosidl_runtime_c/string_functions.h'
+                res += 'rosidl_runtime_c/rosidl_runtime_c/string_functions.h'
             elif r == 'wstring':
-                res += 'rosidl_runtime_c/u16string_functions.h'
+                res += 'rosidl_runtime_c/rosidl_runtime_c/u16string_functions.h'
             else:
-                res += 'rosidl_runtime_c/primitives_sequence_functions.h'
+                res += 'rosidl_runtime_c/rosidl_runtime_c/primitives_sequence_functions.h'
             
         res += '\"\n'
 
