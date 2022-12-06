@@ -8,7 +8,7 @@
 
 // ROS
 #include "unique_identifier_msgs/msg/uuid.h"
-#include "{{data.Group}}/action/{{data.Name}}.h"
+#include "{{data.Group}}/{{data.Group}}/action/{{data.Name}}.h"
 #include "action_msgs/srv/cancel_goal.h"
 
 // rclUE
