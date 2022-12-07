@@ -158,12 +158,9 @@ Other dependency to build and copy lib to UE
 "
 
 # patchelf
-sudo apt install patchelf -y
-
-# iceoryx_hoofs dependency
-sudo apt-get install libacl1-dev -y
+sudo apt install patchelf
 
 # clang-13
 echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list
 sudo apt update
-sudo apt install clang-13 -y
+sudo apt install clang-13

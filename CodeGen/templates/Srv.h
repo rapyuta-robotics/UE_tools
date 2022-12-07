@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 
 // ROS
-#include "{{data.Group}}/{{data.Group}}/srv/{{data.Name}}.h"
+#include "{{data.Group}}/srv/{{data.Name}}.h"
 
 // rclUE
 #include "Srvs/ROS2GenericSrv.h"
