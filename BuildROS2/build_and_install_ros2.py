@@ -41,8 +41,10 @@ def build_ros2(
     allowed_spaces.extend(pkgs)
 
     if remove:
-        print('Cleanup workspace')
-        shutil.rmtree(ros)
+        if os.path.exists(ros):
+            print('Cleanup workspace')
+            shutil.rmtree(ros)
+
 
 
     print('Building ros ' + buildType + '...')
