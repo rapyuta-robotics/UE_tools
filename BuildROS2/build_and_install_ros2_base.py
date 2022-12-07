@@ -13,6 +13,7 @@ DEFAULT_ALLOWED_SPACES = [
     'rmw', 
     'rosidl', 
     'tracetools', 
+    'ament'
     ]
 DEFAULT_NOT_ALLOWED_SPACES = [ 
     '.so.', 
@@ -32,7 +33,7 @@ DEFAULT_NOT_ALLOWED_SPACES = [
     'rosidl_default', 
     'rosidl_generator_cpp', 
     'rosidl_generator_dds_idl', 
-    'rosidl_generator_py', 
+    # 'rosidl_generator_py', 
     'rosidl_runtime_cpp', 
     'rosidl_runtime_py', 
     #msgs
