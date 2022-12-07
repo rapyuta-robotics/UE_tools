@@ -192,7 +192,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--rosdistro', 
         choices=['foxy', 'humble'],
-        default='foxy'
+        default='humble'
     )
 
     args = parser.parse_args()
