@@ -31,8 +31,10 @@ export CXX="/usr/bin/clang++-13"
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418
 export MY_LINKER_FLAGS="-latomic "\
 "-Wl,-rpath=\${ORIGIN} "\
-"-Wl,-rpath-link=/usr/lib/x86_64-linux-gnu "\
-"-Wl,-rpath-link=/usr/lib "
+"-Wl,-rpath-link=/usr/lib/i3864-linux-gnu "\
+"-Wl,-rpath-link=/usr/lib "\
+"-Wl,-rpath-link=/lib32 "\
+"-Wl,-rpath-link=/lib/i386-linux-gnu " 
 
 # options when you build with UE's build tool chaain
 # "-Wl,-rpath-link="$MY_SYS_ROOT_PATH" "\
