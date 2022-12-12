@@ -4,6 +4,7 @@ import os, time
 from libs_utils import *
 
 def build_ros2(
+    UEPath,
     projectPath,
     pluginName,
     pluginFolderName, #pluginFolderName is not always same as pluginName

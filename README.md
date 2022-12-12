@@ -71,8 +71,8 @@ You can find changes in BuildROS2/patches
 1. Build the image with ```docker compose up build_base```
 2. Copy the files from the docker image to your local directory
 ```
-docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/include /home/crossing/Documents/UE_tools_official/BuildROS2
-docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/lib /home/crossing/Documents/UE_tools_official/BuildROS2
+docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/include <path/to/local/directory>
+docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/lib <path/to/local/directory>
 ```
 #### Build msg lib
     
