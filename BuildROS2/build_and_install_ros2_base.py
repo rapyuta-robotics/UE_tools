@@ -76,11 +76,6 @@ if __name__ == '__main__':
         description="Build ros2 from source with necessasary patches to be used with UnrealEngine. And copy lib and header files under Unreal Project folder."
     )
     parser.add_argument(
-        "--ue_path",
-        help="Path to UE",
-        required=True
-    )
-    parser.add_argument(
         "--ue_proj_path",
         help="Path to target UE project",
         required=True
@@ -107,7 +102,6 @@ if __name__ == '__main__':
         ue_plugin_folder_name = args.ue_plugin_name
 
     build_ros2(
-        UEPath = args.ue_path,
         projectPath = args.ue_proj_path,
         pluginName = args.ue_plugin_name,
         pluginFolderName = ue_plugin_folder_name,

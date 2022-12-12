@@ -46,7 +46,7 @@ To use new msg in UnrealEngine Project,
 
 # Details
 
-## BuiildROS2
+## BuildROS2
 Python scripts to build ros2 foxy pkgs from [source](https://docs.ros.org/en/foxy/Installation/Ubuntu-Development-Setup.html) with necessary changes to be used inside UnrealEngine project. Generated lib and header files are used inside UnrealEngine project, mainly by [rclUE](https://github.com/rapyuta-robotics/rclUE).
 
 ### Patches
@@ -58,6 +58,7 @@ You can find changes in BuildROS2/patches
 ### Usage
 #### Build core lib
 
+#### Using bash and local installation
 1. cd UE_tools/BuildROS2 
 2. python3 build_and_install_ros2_base.py --ue_path /home/user/UnrealEngine/ --ue_proj_path /home/user/turtlebot3-UE/`
 
@@ -65,6 +66,14 @@ You can find changes in BuildROS2/patches
 
     `python3 build_and_install_ros2_base.py --ue_path /home/user/UnrealEngine --ue_proj_path /home/user/turtlebot3-UE`
 
+#### Using Docker
+
+1. Build the image with ```docker compose up build_base```
+2. Copy the files from the docker image to your local directory
+```
+docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/include /home/crossing/Documents/UE_tools_official/BuildROS2
+docker compose cp build_base:/home/user/Project/Plugins/rclUE/ThirdParty/ros/lib /home/crossing/Documents/UE_tools_official/BuildROS2
+```
 #### Build msg lib
     
 1. cd UE_tools/BuildROS2

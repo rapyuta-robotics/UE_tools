@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  build_base:
+    build: .
+    image: ue_tools_build
+    volumes:
+      - ${OUTPUT:-./ros}:/home/user/Project/Plugins/rclUE/ThirdParty/ros
+      - /home/crossing/Documents/UE_tools_official/BuildROS2:/home/user/Project/Plugins/rclUE/ThirdParty/ros
+  

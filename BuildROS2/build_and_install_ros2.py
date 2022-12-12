@@ -4,7 +4,6 @@ import os, time
 from libs_utils import *
 
 def build_ros2(
-    UEPath,
     projectPath,
     pluginName,
     pluginFolderName, #pluginFolderName is not always same as pluginName
@@ -13,7 +12,6 @@ def build_ros2(
     allowed_spaces = [],
     not_allowed_spaces = [],
     pkgs = [],
-    remove = True,
     rosdistro = 'humble'
 ):
     start = time.time()
@@ -39,23 +37,6 @@ def build_ros2(
     rosInstall  = os.path.join(ros, 'install')
 
     allowed_spaces.extend(pkgs)
-
-    if remove:
-        if os.path.exists(ros):
-            print('Cleanup workspace')
-            shutil.rmtree(ros)
-
-
-
-    print('Building ros ' + buildType + '...')
-    os.system('chmod +x ' + buildRosScript)
-    os.system('bash ' + buildRosScript + ' ' + ros + ' ' + rosdistro + ' ' +  ' "' + ' '.join(pkgs) + '"')
-
-    if remove:
-        if os.path.exists(pluginPathRosInclude):
-            shutil.rmtree(pluginPathRosInclude)
-        if os.path.exists(pluginPathRosLib):
-            shutil.rmtree(pluginPathRosLib)
 
     os.makedirs(pluginPathRosInclude, exist_ok=True)
     os.makedirs(pluginPathRosLib, exist_ok=True)
