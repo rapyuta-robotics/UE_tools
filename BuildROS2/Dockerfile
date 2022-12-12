@@ -134,8 +134,7 @@ ADD --chown=user:user patches /home/user/patches
 ADD --chown=user:user build_and_install_ros2_base.py /home/user/
 
 
-RUN python3  build_and_install_ros2_base.py --ue_proj_path /home/user/Project
-
+RUN python3 build_and_install_ros2_base.py --ue_path /home/user --ue_proj_path /home/user/Project
 RUN ls /home/user/Project/Plugins/rclUE/ThirdParty/ros
 # USER user
 # RUN python3 build_and_install_ros2_base.py --ue_path /home/user/UnrealEngine --ue_proj_path /home/user/Documents/Unreal\ Projects/Cabane\ 5.1
