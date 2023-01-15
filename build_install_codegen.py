@@ -4,7 +4,6 @@ import sys
 import os
 import shutil
 import argparse
-from numpy import isin
 import yaml
 from contextlib import contextmanager
 
