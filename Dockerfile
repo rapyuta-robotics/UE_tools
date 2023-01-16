@@ -3,6 +3,8 @@ ARG ROSDISTRO="humble"
 
 RUN apt update && apt upgrade -y
 
+RUN mkdir UE_tools
+
 COPY . UE_tools/
 
 WORKDIR UE_tools
