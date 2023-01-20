@@ -2,7 +2,7 @@
 
 import argparse
 
-from build_and_install_ros2 import build_ros2
+from build_and_install_ros2 import build_ros2, install_ros2
 
 DEFAULT_ALLOWED_SPACES = [ 
     'fastcdr', 
@@ -107,7 +107,12 @@ if __name__ == '__main__':
         ue_plugin_folder_name = args.ue_plugin_name
 
     build_ros2(
-        UEPath = args.ue_path,
+        buildType = 'base',
+        allowed_spaces = DEFAULT_ALLOWED_SPACES,
+        pkgs = ['ue_msgs'],
+    )
+    
+    install_ros2(
         projectPath = args.ue_proj_path,
         pluginName = args.ue_plugin_name,
         pluginFolderName = ue_plugin_folder_name,
@@ -115,5 +120,4 @@ if __name__ == '__main__':
         buildType = 'base',
         allowed_spaces = DEFAULT_ALLOWED_SPACES,
         not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES,
-        pkgs = ['ue_msgs'],
     )

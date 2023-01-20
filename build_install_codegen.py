@@ -173,6 +173,12 @@ if __name__ == '__main__':
         action='store_true'
     )
     parser.add_argument(
+        '-i',
+        '--install', 
+        help='Install ros2 lib to UE project in yaml.',
+        action='store_true'
+    )
+    parser.add_argument(
         '-c',
         '--codegen', 
         help='Generate UE codes from pkgs',
@@ -205,11 +211,11 @@ if __name__ == '__main__':
         target, black_list, dependency, name_mapping = load_from_configs(config_files, args.remove and args.type == 'pkgs')
 
     # build lib and copy to ue project
-    if args.build:
+    if args.build or args.install:
         with managed_chdir('BuildROS2'):
             os.system('pwd')
             sys.path.append(os.getcwd())
-            from BuildROS2.build_and_install_ros2 import build_ros2
+            from BuildROS2.build_and_install_ros2 import build_ros2, install_ros2
             from BuildROS2.build_and_install_ros2_base import DEFAULT_NOT_ALLOWED_SPACES, DEFAULT_ALLOWED_SPACES
             if args.type == 'base':
                 allowed_spaces = DEFAULT_ALLOWED_SPACES
@@ -220,19 +226,25 @@ if __name__ == '__main__':
                 not_allowed_spaces = []
                 pkgs = list(target.keys())
 
-            build_ros2(
-                UEPath = UEPath,
-                projectPath = projectPath,
-                pluginName = pluginName,
-                pluginFolderName = pluginFolderName,
-                targetThirdpartyFolderName = targetThirdpartyFolderName,
-                buildType = args.type,
-                allowed_spaces = allowed_spaces,
-                not_allowed_spaces = not_allowed_spaces,
-                pkgs = pkgs,
-                remove = args.remove,
-                rosdistro = args.rosdistro
-            )
+            if args.build:    
+                build_ros2(
+                    buildType = args.type,
+                    allowed_spaces = allowed_spaces,
+                    pkgs = pkgs,
+                    remove = args.remove,
+                    rosdistro = args.rosdistro
+                )
+            if args.install:
+                install_ros2(
+                    projectPath = projectPath,
+                    pluginName = pluginName,
+                    pluginFolderName = pluginFolderName,
+                    targetThirdpartyFolderName = targetThirdpartyFolderName,
+                    buildType = args.type,
+                    allowed_spaces = allowed_spaces,
+                    not_allowed_spaces = not_allowed_spaces,
+                    remove = args.remove,
+                )
 
     # codegen
     if args.type == 'pkgs' and args.codegen:

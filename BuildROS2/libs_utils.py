@@ -177,6 +177,7 @@ def RenameLibsWithVersion(pluginPath, projectPath):
             if versionMarker in rawInfoLine and 'not found' in rawInfoLine:
                 libNameVersioning = rawInfoLine.split('=>')[0].lstrip().rstrip()
                 soname = libNameVersioning.split(versionMarker)[0] + '.so'
+                print(soname)
 
                 if soname in lib_files:
                     libsReplacements[libNameVersioning] = [soname, lib_files[soname]]

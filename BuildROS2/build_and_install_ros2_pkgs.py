@@ -2,7 +2,7 @@
 
 import argparse
 
-from build_and_install_ros2 import build_ros2
+from build_and_install_ros2 import build_ros2, install_ros2
 
 DEFAULT_PKGS = [
     'action_msgs',
@@ -69,7 +69,11 @@ if __name__ == '__main__':
         ue_plugin_folder_name = args.ue_plugin_name
 
     build_ros2(
-        UEPath = args.ue_path,
+        buildType = 'pkgs',
+        allowed_spaces = args.ros_pkgs,
+        pkgs = args.ros_pkgs
+    )
+    install_ros2(
         projectPath = args.ue_proj_path,
         pluginName = args.ue_plugin_name,
         pluginFolderName = ue_plugin_folder_name,
@@ -77,5 +81,4 @@ if __name__ == '__main__':
         buildType = 'pkgs',
         allowed_spaces = args.ros_pkgs,
         not_allowed_spaces = [],
-        pkgs = args.ros_pkgs
     )
