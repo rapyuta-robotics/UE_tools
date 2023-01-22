@@ -17,7 +17,7 @@ Install ROS2 $ROS2_DISTRO
 # cleanup
 sudo rm /etc/apt/sources.list.d/ros2.list*
 sudo rm /etc/ros/rosdep/sources.list.d/20-default.list
-sudo rm ros2_ws/ros2.repos*
+sudo rm $ROS2_WS/ros2.repos*
 
 ## Set locale
 locale  # check for UTF-8
@@ -129,8 +129,10 @@ echo "
 Patch rcpputils 
 ########################
 "
+patch_path=$(pwd)/patches/$ROS2_DISTRO
+echo $patch_path
 pushd $ROS2_WS/src/ros2/rcpputils
-  git apply ../../../../patches/rcpputils.patch
+  git apply $patch_path/rcpputils.patch
 popd
 
 # can't patch here. patch after copied header under UE project.
@@ -143,11 +145,11 @@ echo "
 #############################################################
 "
 pushd $ROS2_WS/src/eProsima/Fast-DDS
-  git apply ../../../../patches/Fast-DDS.patch
+  git apply $patch_path/Fast-DDS.patch
   git submodule init
   git submodule update
   pushd thirdparty/asio
-    git apply ../../../../../../patches/asio.patch  
+    git apply $patch_path/asio.patch  
   popd
 popd
 

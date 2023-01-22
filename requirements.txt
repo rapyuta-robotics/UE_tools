@@ -3,3 +3,4 @@ jinja2
 vcstool
 colcon-common-extensions
 numpy
+docker

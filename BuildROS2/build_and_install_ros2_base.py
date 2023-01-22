@@ -110,14 +110,15 @@ if __name__ == '__main__':
         buildType = 'base',
         allowed_spaces = DEFAULT_ALLOWED_SPACES,
         pkgs = ['ue_msgs'],
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws')
     )
-    
     install_ros2(
         projectPath = args.ue_proj_path,
         pluginName = args.ue_plugin_name,
         pluginFolderName = ue_plugin_folder_name,
         targetThirdpartyFolderName = args.ue_target_3rd_name,
         buildType = 'base',
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws'),
         allowed_spaces = DEFAULT_ALLOWED_SPACES,
         not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES,
     )

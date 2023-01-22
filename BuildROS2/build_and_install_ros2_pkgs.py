@@ -72,6 +72,7 @@ if __name__ == '__main__':
         buildType = 'pkgs',
         allowed_spaces = args.ros_pkgs,
         pkgs = args.ros_pkgs
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws')
     )
     install_ros2(
         projectPath = args.ue_proj_path,
@@ -79,6 +80,7 @@ if __name__ == '__main__':
         pluginFolderName = ue_plugin_folder_name,
         targetThirdpartyFolderName = args.ue_target_3rd_name,
         buildType = 'pkgs',
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws'),
         allowed_spaces = args.ros_pkgs,
         not_allowed_spaces = [],
     )

@@ -1,0 +1,22 @@
+diff --git a/asio/include/asio/system_error.hpp b/asio/include/asio/system_error.hpp
+index 63908941..c69f1123 100644
+--- a/asio/include/asio/system_error.hpp
++++ b/asio/include/asio/system_error.hpp
+@@ -17,7 +17,7 @@
+ 
+ #include "asio/detail/config.hpp"
+ 
+-#if defined(ASIO_HAS_STD_SYSTEM_ERROR)
++#if 0
+ # include <system_error>
+ #else // defined(ASIO_HAS_STD_SYSTEM_ERROR)
+ # include <cerrno>
+@@ -31,7 +31,7 @@
+ 
+ namespace asio {
+ 
+-#if defined(ASIO_HAS_STD_SYSTEM_ERROR)
++#if 0
+ 
+ typedef std::system_error system_error;
+ 

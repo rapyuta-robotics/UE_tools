@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 # default dependency pkgs. Commonly used pkgs
 # https://github.com/ros2/common_interfaces +  alpha
 # BASE_ROS_INSTALL_PATH = '/opt/ros/foxy/share'
-BASE_ROS_INSTALL_PATH = os.path.join(os.getcwd(), '../BuildROS2/ros2_ws/install')
 DEFAULT_DEPENDENCY_PKGS = {
     # 'action_msgs': '',
     'actionlib_msgs': '',
@@ -969,7 +968,7 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
 # main process
 ############################################
 
-def codegen(module, dependency, target, name_mapping):
+def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.getcwd(), '../ros2_ws'),):
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
     current_dir = os.getcwd()
@@ -982,15 +981,15 @@ def codegen(module, dependency, target, name_mapping):
     os.system('mkdir Msgs Srvs Actions')
 
     module_api = module.upper() + '_API'
-
-    ros_paths = [os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in dependency.keys()]
+    
+    ros_paths = [os.path.join(ros_ws, pkg) for pkg in dependency.keys()]
     groups = []
 
     # defautl is same as dependency
     if target is None:
         ue_paths = ros_paths
     else:
-        ue_paths = [os.path.join(BASE_ROS_INSTALL_PATH, pkg) for pkg in target.keys()]
+        ue_paths = [os.path.join(ros_ws, pkg) for pkg in target.keys()]
 
     for path in dependency:
         path = path.rstrip('/') #removing trailing slash
@@ -1188,7 +1187,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate C++ files for rclUE from ROS2 msgs.')
     parser.add_argument('--module', default='RCLUE', help='UE module name used in class/struct definition.')
     parser.add_argument('--dependency', nargs='*', default=DEFAULT_DEPENDENCY_PKGS, help='path to directory which include \
-        dependency of target. You can specify UE_tools/BuildROS2/ros2_ws to include all build \
+        dependency of target. You can specify UE_tools/ros2_ws to include all build \
         pkgs as dependency, but it take longer to process.')
     parser.add_argument('--target', nargs='*', help='path to directory which has target msg files')
     parser.add_argument('--name_mapping', nargs='*', default=DEFAULT_NAME_MAPPING, help='name mapping to replace specific words.')

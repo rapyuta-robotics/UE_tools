@@ -9,5 +9,5 @@ repositories:
     version: devel
   example_interfaces:
     type: git
-    url: git@github.com:rapyuta-robotics/example_interfaces.git
+    url: https://github.com/rapyuta-robotics/example_interfaces.git
     version: master

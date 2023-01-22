@@ -1,0 +1,27 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f74b1378f..c184b2efd 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -218,7 +218,7 @@ option(BUILD_SHARED_LIBS "Create shared libraries by default" ON)
+ include(${PROJECT_SOURCE_DIR}/cmake/common/eprosima_libraries.cmake)
+ 
+ eprosima_find_package(fastcdr REQUIRED)
+-eprosima_find_thirdparty(Asio asio)
++#eprosima_find_thirdparty(Asio asio)
+ eprosima_find_thirdparty(TinyXML2 tinyxml2)
+ 
+ find_package(foonathan_memory REQUIRED)
+@@ -230,6 +230,7 @@ if(ANDROID)
+ endif()
+ 
+ include_directories(thirdparty/nlohmann-json)
++include_directories(thirdparty/asio)
+ 
+ ###############################################################################
+ # Options
+diff --git a/thirdparty/asio b/thirdparty/asio
+--- a/thirdparty/asio
++++ b/thirdparty/asio
+@@ -1 +1 @@
+-Subproject commit 22afb86087a77037cd296d27134756c9b0d2cb75
++Subproject commit 22afb86087a77037cd296d27134756c9b0d2cb75-dirty

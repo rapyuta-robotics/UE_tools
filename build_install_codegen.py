@@ -7,10 +7,6 @@ import argparse
 import yaml
 from contextlib import contextmanager
 
-WS_PATH = os.path.join(os.getcwd(), 'BuildROS2/ros2_ws')
-SRC_PATH = os.path.join(WS_PATH, 'src')
-ADDITIONAL_PKG_PATH = os.path.join(WS_PATH, 'src/pkgs')
-
 @contextmanager
 def managed_chdir(path):
     prev_path = os.getcwd()
@@ -20,7 +16,7 @@ def managed_chdir(path):
     finally:
         os.chdir(prev_path)
 
-def load_from_configs(file_names, remove = True):
+def load_from_configs(file_names, ros2_ws, pull = True, remove = True):
 
     # overwritten params
     dependency = {}
@@ -28,7 +24,6 @@ def load_from_configs(file_names, remove = True):
 
     # get default values    
     with managed_chdir('CodeGen'):
-        os.system('pwd')
         sys.path.append(os.getcwd())
         import CodeGen.gen_ue_from_ros as cg
         import CodeGen.post_generate as pg
@@ -43,20 +38,21 @@ def load_from_configs(file_names, remove = True):
                 target, black_list, dependency, name_mapping, repos = load_from_config(file, dependency, name_mapping)
     
     # cleanup
+    additonal_pkg_path = os.path.join(ros2_ws, 'src/pkgs')
     if remove:
-        if os.path.exists(ADDITIONAL_PKG_PATH):
-            shutil.rmtree(ADDITIONAL_PKG_PATH)
+        if os.path.exists(additonal_pkg_path):
+            shutil.rmtree(additonal_pkg_path)
 
     # pull
     home = os.environ['HOME']
-    if repos:
-        if not os.path.exists(ADDITIONAL_PKG_PATH):
-            os.makedirs(ADDITIONAL_PKG_PATH)
-        os.system('vcs import --repos --debug ' + ADDITIONAL_PKG_PATH + ' < ' + os.path.join(home, repos))
+    if repos and pull:
+        if not os.path.exists(additonal_pkg_path):
+            os.makedirs(additonal_pkg_path)
+        os.system('vcs import --repos --debug ' + additonal_pkg_path + ' < ' + os.path.join(home, repos))
 
     return UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-            target, black_list, dependency, name_mapping
+            target, black_list, dependency, name_mapping, repos
 
 def load_from_config(file_name, dependency, name_mapping):
     try:
@@ -152,9 +148,7 @@ def load_from_config(file_name, dependency, name_mapping):
         pluginFolderName, targetThirdpartyFolderName, \
             target, black_list, dependency, name_mapping, repos
 
-
-
-if __name__ == '__main__':
+def args_setup():
     parser = argparse.ArgumentParser(
         description="Build ros2 from source with necessasary patches to be used with UnrealEngine. And copy lib and header files under Unreal Project folder."
     )
@@ -190,14 +184,32 @@ if __name__ == '__main__':
         help='config files path'
     )
     parser.add_argument(
+        '--rosdistro', 
+        choices=['foxy', 'humble'],
+        default='humble'
+    )
+    parser.add_argument(
+        '--ros_ws', 
+        help='path to ros_ws to build and copy from',
+        default=os.path.join(os.getcwd(), 'ros2_ws')
+    )
+   
+
+    return parser
+
+if __name__ == '__main__':
+
+    parser = args_setup()
+    parser.add_argument(
         '--remove', 
         help='Delete source before pull. Valid only with type==pkgs',
         action='store_true'
     )
     parser.add_argument(
-        '--rosdistro', 
-        choices=['foxy', 'humble'],
-        default='humble'
+        '-p',
+        '--skip_pull', 
+        help='Skip pulluing src',
+        action='store_true'
     )
 
     args = parser.parse_args()
@@ -208,12 +220,11 @@ if __name__ == '__main__':
 
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-        target, black_list, dependency, name_mapping = load_from_configs(config_files, args.remove and args.type == 'pkgs')
+        target, black_list, dependency, name_mapping, repos = load_from_configs(config_files, args.ros_ws, not args.skip_pull, args.remove and args.type == 'pkgs')
 
     # build lib and copy to ue project
     if args.build or args.install:
         with managed_chdir('BuildROS2'):
-            os.system('pwd')
             sys.path.append(os.getcwd())
             from BuildROS2.build_and_install_ros2 import build_ros2, install_ros2
             from BuildROS2.build_and_install_ros2_base import DEFAULT_NOT_ALLOWED_SPACES, DEFAULT_ALLOWED_SPACES
@@ -231,6 +242,7 @@ if __name__ == '__main__':
                     buildType = args.type,
                     allowed_spaces = allowed_spaces,
                     pkgs = pkgs,
+                    ros_ws = args.ros_ws,
                     remove = args.remove,
                     rosdistro = args.rosdistro
                 )
@@ -241,15 +253,16 @@ if __name__ == '__main__':
                     pluginFolderName = pluginFolderName,
                     targetThirdpartyFolderName = targetThirdpartyFolderName,
                     buildType = args.type,
+                    ros_ws = args.ros_ws,
                     allowed_spaces = allowed_spaces,
                     not_allowed_spaces = not_allowed_spaces,
                     remove = args.remove,
+                    rosdistro = args.rosdistro
                 )
 
     # codegen
     if args.type == 'pkgs' and args.codegen:
         with managed_chdir('CodeGen'):
-            os.system('pwd')
             sys.path.append(os.getcwd())
             import CodeGen.gen_ue_from_ros as cg
             import CodeGen.post_generate as pg
@@ -259,7 +272,8 @@ if __name__ == '__main__':
                 module = pluginName,
                 dependency = dependency,
                 target = target,
-                name_mapping = name_mapping
+                name_mapping = name_mapping,
+                ros_ws = args.ros_ws
             )
             
             # post generate. copy generated code to ue project
