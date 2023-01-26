@@ -228,6 +228,7 @@ if __name__ == '__main__':
             sys.path.append(os.getcwd())
             from BuildROS2.build_and_install_ros2 import build_ros2, install_ros2
             from BuildROS2.build_and_install_ros2_base import DEFAULT_NOT_ALLOWED_SPACES, DEFAULT_ALLOWED_SPACES
+            ws_remove = args.remove
             if args.type == 'base':
                 allowed_spaces = DEFAULT_ALLOWED_SPACES
                 not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES
@@ -236,6 +237,7 @@ if __name__ == '__main__':
                 allowed_spaces = list(target.keys())
                 not_allowed_spaces = []
                 pkgs = list(target.keys())
+                ws_remove = False # don't remove works space for pkgs since pkgs need base libs
 
             if args.build:    
                 build_ros2(
@@ -243,7 +245,7 @@ if __name__ == '__main__':
                     allowed_spaces = allowed_spaces,
                     pkgs = pkgs,
                     ros_ws = args.ros_ws,
-                    remove = args.remove,
+                    remove = ws_remove,
                     rosdistro = args.rosdistro
                 )
             if args.install:
