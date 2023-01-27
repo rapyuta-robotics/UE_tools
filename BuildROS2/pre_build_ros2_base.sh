@@ -153,6 +153,9 @@ pushd $ROS2_WS/src/eProsima/Fast-DDS
   popd
 popd
 
+# remove locally installed asio in case.
+sudo apt purge -y libasio-*
+
 echo "
 #######################
 Other dependency to build and copy lib to UE
@@ -166,6 +169,6 @@ sudo apt install patchelf -y
 sudo apt-get install libacl1-dev -y
 
 # clang-13
-echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list
+sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
 sudo apt update
 sudo apt install clang-13 -y

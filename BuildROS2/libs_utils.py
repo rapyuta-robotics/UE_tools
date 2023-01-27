@@ -87,7 +87,7 @@ def GrabLibs(folderFrom, folderTo, allowed_spaces):
                 fileTo = folderTo + '/' + file
                 shutil.copy(fileFrom, fileTo)
 
-    print('Grabbed libs (' + folderFrom + '): ' + str(filesCount))
+    print('Grabbed libs (from ' + folderFrom + ' to ' + folderTo + '): ' + str(filesCount))
 
 def GrabIncludes(folderFrom, folderTo, allowed_spaces):
     foldersCount = 0
@@ -106,7 +106,7 @@ def GrabIncludes(folderFrom, folderTo, allowed_spaces):
                     shutil.copytree(subincludePath, folderToFull, dirs_exist_ok=True)
                     foldersCount += 1
 
-    print('Grabbed include folders (' + folderFrom + '): ' + str(foldersCount))
+    print('Grabbed include folders (from ' + folderFrom + ' to ' + folderTo + '): ' + str(foldersCount))
 
 def CleanLibs(dir, not_allowed_spaces):
     removedCount = 0

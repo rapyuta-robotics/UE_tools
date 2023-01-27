@@ -32,8 +32,8 @@ if __name__ == '__main__':
         pluginFolderName, targetThirdpartyFolderName, \
         target, black_list, dependency, name_mapping, repos = load_from_configs(config_files, args.ros_ws, False, False)
 
-    user = 'root'
-    volumes = [projectPath + ':/' + user + '/' + os.path.basename(projectPath)]
+    user = 'admin'
+    volumes = [projectPath + ':/home/' + user + '/' + os.path.basename(projectPath)]
     # todo pass all args except for pull_inside_docker and config
     command = 'python3 build_install_codegen.py --type ' + args.type + ' --rosdistro ' + args.rosdistro
     
@@ -42,12 +42,12 @@ if __name__ == '__main__':
         command += ' --skip_pull '
         # todo vcs import outside and mount
     elif repos:
-        volumes.append(os.path.join(os.environ['HOME'], repos) + ':/' + user + '/' + repos)
+        volumes.append(os.path.join(os.environ['HOME'], repos) + ':/home/' + user + '/' + repos)
 
     # mount config and repos    
     for config_file in config_files:
         id = str(uuid.uuid4())
-        target_path = '/' + user + '/config_' + id + '.yaml'
+        target_path = '/home/' + user + '/config_' + id + '.yaml'
         volumes.append(os.path.abspath(config_file) + ':' + target_path)
         command += ' --config ' + target_path
     
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         if f == 'ros2_ws':
             continue
         else:
-            os.system('docker cp ' + os.path.join(cur_dir, f) + ' ' + container_name + ':/root/UE_tools/')
+            os.system('docker cp ' + os.path.join(cur_dir, f) + ' ' + container_name + ':/home/' + user + '/UE_tools/')
 
     exec_run_with_log(container, "/bin/bash -c \"find BuildROS2 -type f | xargs sed -i 's/sudo //g'\"")
 
