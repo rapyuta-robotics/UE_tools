@@ -1,5 +1,7 @@
-FROM ubuntu:20.04 
-ARG ROSDISTRO="foxy"
+ARG UBUNTU_VER="22.04"
+
+FROM ubuntu:${UBUNTU_VER} 
+ARG ROSDISTRO="humble"
 
 RUN apt update && apt install sudo
 

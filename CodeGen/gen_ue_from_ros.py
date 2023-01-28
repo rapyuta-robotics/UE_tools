@@ -981,15 +981,15 @@ def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.g
     os.system('mkdir Msgs Srvs Actions')
 
     module_api = module.upper() + '_API'
-    
-    ros_paths = [os.path.join(ros_ws, pkg) for pkg in dependency.keys()]
+    ros_install_path = os.path.join(ros_ws, 'install')
+    ros_paths = [os.path.join(ros_install_path, pkg) for pkg in dependency.keys()]
     groups = []
 
     # defautl is same as dependency
     if target is None:
         ue_paths = ros_paths
     else:
-        ue_paths = [os.path.join(ros_ws, pkg) for pkg in target.keys()]
+        ue_paths = [os.path.join(ros_install_path, pkg) for pkg in target.keys()]
 
     for path in dependency:
         path = path.rstrip('/') #removing trailing slash
