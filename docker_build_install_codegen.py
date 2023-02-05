@@ -30,6 +30,11 @@ if __name__ == '__main__':
         help='pull additonal repos inside docker or outside docker and mount',
         action='store_true'
     )
+    parser.add_argument(
+        '--docker_image', 
+        help='docker image name. if this is not provided, yuokamoto1988/ue_ros2_base:$ROSDISTRO is used',
+        default=""
+    )
     args = parser.parse_args()
     
     config_files = ['default_config.yaml']
@@ -53,7 +58,7 @@ if __name__ == '__main__':
     # pass arg to command inside docker.
     arg_dict = vars(args)
     for arg in arg_dict:
-        if arg in ['ros_ws', 'config', 'pull_inside_docker']: #skip some args
+        if arg in ['ros_ws', 'config', 'docker_image']: #skip some args
             continue
         arg_value = arg_dict[arg]
         if type(arg_value) == type(True):
@@ -94,10 +99,14 @@ if __name__ == '__main__':
     except:
         pass
 
+    docker_image = args.docker_image
+    if not args.docker_image:
+        docker_image = DOCKER_IMAGE + ':' + args.rosdistro
     print('Run docker conatiner named:' + container_name)
-    print('mount volumes:', volumes)
+    print(' image name:', docker_image)
+    print(' mount volumes:', volumes)
     container = client.containers.run(
-        DOCKER_IMAGE + ':' + args.rosdistro, 
+        docker_image, 
         'sleep infinity', 
         name=container_name, 
         volumes=volumes,

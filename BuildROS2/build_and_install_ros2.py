@@ -80,7 +80,7 @@ def install_ros2(
     RenameLibsWithVersion(pluginPathRosLib, projectPath)
     SetRPATH(pluginPathRosLib)
     InvalidateBinaries(projectPathBinaries, pluginPathBinaries, pluginPathBuildCS)
-
+    RemovePyDependency(pluginPathRosLib, projectPath)
     # You also can try this:
     # CreateInfoForAll('objdump -x', pluginPathRosLib, infoRosOutput) # see also 'ldd'
     # CheckLibs(pluginPathRosLib)

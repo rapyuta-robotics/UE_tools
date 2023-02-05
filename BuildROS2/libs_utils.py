@@ -157,6 +157,21 @@ def ReplaceSonameWithFileRemove(folderName, libDir, soname, fileName):
 
     RunCommandForEveryLib(folderName, ['patchelf', '--replace-needed', fileName, soname])
 
+def RemoveLibraryDependnecy(folderName, soname):
+    RunCommandForEveryLib(folderName, ['patchelf', '--remove-needed', soname])
+
+def RemovePyDependency(pluginPath, projectPath):
+    print('Looking for python related libs...')
+    libsReplacements = dict()
+    lib_files = {os.path.basename(x):os.path.dirname(x) for x in glob.glob(os.path.join(projectPath, 'Plugins/**/*.so'), recursive=True)}
+    for fullName in GetLibs(pluginPath):
+        lddInfoRaw = os.popen('ldd ' + fullName).read()
+        for rawInfoLine in lddInfoRaw.split('\n'):
+            if 'python' in rawInfoLine or 'rosidl_generator_py' in rawInfoLine:
+                soname = rawInfoLine.split('=>')[0].lstrip().rstrip()
+                os.system('patchelf --remove-needed ' + soname + ' ' + fullName)
+   
+
 # UE4.27 can't deal with so libs with version (for example libmyname.so.2.0.3)
 # you can fix it by adding:
 # /home/vilkun/UE/UnrealEngine/Engine/Source/Programs/UnrealBuildTool/Platform/Linux/LinuxToolChain.cs

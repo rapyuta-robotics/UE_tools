@@ -235,7 +235,10 @@ if __name__ == '__main__':
                 pkgs = []
             elif args.type == 'pkgs':
                 allowed_spaces = list(target.keys())
-                not_allowed_spaces = []
+                not_allowed_spaces = [
+                    'python', 
+                    'rosidl_generator_py'
+                ]
                 pkgs = list(target.keys())
                 ws_remove = False # don't remove works space for pkgs since pkgs need base libs
 

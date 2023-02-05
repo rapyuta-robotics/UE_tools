@@ -32,6 +32,7 @@ DEFAULT_NOT_ALLOWED_SPACES = [
     'rosidl_cmake', 
     'rosidl_default', 
     'rosidl_generator_cpp', 
+    'rosidl_generator_py', 
     'rosidl_generator_dds_idl', 
     # 'rosidl_generator_py', 
     'rosidl_runtime_cpp', 
