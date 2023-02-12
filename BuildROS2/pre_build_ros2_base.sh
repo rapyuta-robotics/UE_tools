@@ -1,20 +1,23 @@
 #!/bin/bash
 
 #########################################################################
-# install ros2 foxy
-# https://docs.ros.org/en/foxy/Installation/Ubuntu-Development-Setup.html
+# install ros2 $ROS2_DISTRO
+# https://docs.ros.org/en/$ROS2_DISTRO/Installation/Ubuntu-Development-Setup.html
 #########################################################################
+
+ROS2_WS=$1
+ROS2_DISTRO=$2
 
 echo "
 ########################
-Install ROS2 Foxy
+Install ROS2 $ROS2_DISTRO
 ########################
 "
 
 # cleanup
 sudo rm /etc/apt/sources.list.d/ros2.list*
 sudo rm /etc/ros/rosdep/sources.list.d/20-default.list
-sudo rm ros2_ws/ros2.repos*
+sudo rm $ROS2_WS/ros2.repos*
 
 ## Set locale
 locale  # check for UTF-8
@@ -80,27 +83,25 @@ Get ROS2 source
 ########################
 "
 ## Get ROS2 code
-ROS2_WS=$(pwd)/ros2_ws
 mkdir -p $ROS2_WS/src
-cd $ROS2_WS
-wget https://raw.githubusercontent.com/ros2/ros2/foxy/ros2.repos
-vcs import src < ros2.repos
+pushd $ROS2_WS
+  wget https://raw.githubusercontent.com/ros2/ros2/$ROS2_DISTRO/ros2.repos
+  vcs import src < ros2.repos
 
-echo "
-##############################################
-Ignore ros1_bridge and example_interfaces. 
-###############################################
-"
-touch src/ros2/ros1_bridge/COLCON_IGNORE
-touch src/ros2/example_interfaces/COLCON_IGNORE
+  echo "
+  ##############################################
+  Ignore ros1_bridge and example_interfaces. 
+  ###############################################
+  "
+  touch src/ros2/ros1_bridge/COLCON_IGNORE
+  touch src/ros2/example_interfaces/COLCON_IGNORE
 
-# Install dependencies using rosdep
-#sudo apt upgrade
-sudo rosdep init
-rosdep update
-rosdep install --from-paths src --ignore-src -y --skip-keys "fastcdr rti-connext-dds-5.3.1 urdfdom_headers"
-
-cd -
+  # Install dependencies using rosdep
+  #sudo apt upgrade
+  sudo rosdep init
+  rosdep update
+  rosdep install --from-paths src --ignore-src -ry --skip-keys "fastcdr rti-connext-dds-5.3.1 rti-connext-dds-6.0.1 urdfdom_headers" --rosdistro $ROS2_DISTRO
+popd
 
 #########################################################################
 # Reinstall python package due to issues 
@@ -121,19 +122,39 @@ echo "
 Clone rclc 
 ########################
 "
-git clone --branch foxy https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
+git clone --branch $ROS2_DISTRO https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
 
 echo "
 #######################
-Patch rcpputils and error_handling
+Patch rcpputils 
 ########################
 "
-cd $ROS2_WS/src/ros2/rcpputils
-git apply ../../../../patches/rcpputils.patch
+patch_path=$(pwd)/patches/$ROS2_DISTRO
+echo $patch_path
+pushd $ROS2_WS/src/ros2/rcpputils
+  git apply $patch_path/rcpputils.patch
+popd
 
 # can't patch here. patch after copied header under UE project.
 # cd $ROS2_WS/src/ros2/rcutils
 # git apply ../../../../patches/rcutils.patch
+
+echo "
+############################################################
+[Temp hack]Patch Fast-DDS and asio to avod crash in Editor
+#############################################################
+"
+pushd $ROS2_WS/src/eProsima/Fast-DDS
+  git apply $patch_path/Fast-DDS.patch
+  git submodule init
+  git submodule update
+  pushd thirdparty/asio
+    git apply $patch_path/asio.patch  
+  popd
+popd
+
+# remove locally installed asio in case.
+sudo apt purge -y libasio-*
 
 echo "
 #######################
@@ -141,4 +162,13 @@ Other dependency to build and copy lib to UE
 ########################
 "
 
-sudo apt install patchelf
+# patchelf
+sudo apt install patchelf -y
+
+# iceoryx_hoofs dependency
+sudo apt-get install libacl1-dev -y
+
+# clang-13
+sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
+sudo apt update
+sudo apt install clang-13 -y

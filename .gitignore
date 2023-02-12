@@ -4,4 +4,5 @@ CodeGen/.vscode/
 CodeGen/*.log
 CodeGen/*/*.h
 CodeGen/*/*.cpp
-BuildROS2/ros2_ws/
+ros2_ws/
+tmp/

@@ -87,7 +87,7 @@ def GrabLibs(folderFrom, folderTo, allowed_spaces):
                 fileTo = folderTo + '/' + file
                 shutil.copy(fileFrom, fileTo)
 
-    print('Grabbed libs (' + folderFrom + '): ' + str(filesCount))
+    print('Grabbed libs (from ' + folderFrom + ' to ' + folderTo + '): ' + str(filesCount))
 
 def GrabIncludes(folderFrom, folderTo, allowed_spaces):
     foldersCount = 0
@@ -106,7 +106,7 @@ def GrabIncludes(folderFrom, folderTo, allowed_spaces):
                     shutil.copytree(subincludePath, folderToFull, dirs_exist_ok=True)
                     foldersCount += 1
 
-    print('Grabbed include folders (' + folderFrom + '): ' + str(foldersCount))
+    print('Grabbed include folders (from ' + folderFrom + ' to ' + folderTo + '): ' + str(foldersCount))
 
 def CleanLibs(dir, not_allowed_spaces):
     removedCount = 0
@@ -157,6 +157,21 @@ def ReplaceSonameWithFileRemove(folderName, libDir, soname, fileName):
 
     RunCommandForEveryLib(folderName, ['patchelf', '--replace-needed', fileName, soname])
 
+def RemoveLibraryDependnecy(folderName, soname):
+    RunCommandForEveryLib(folderName, ['patchelf', '--remove-needed', soname])
+
+def RemovePyDependency(pluginPath, projectPath):
+    print('Looking for python related libs...')
+    libsReplacements = dict()
+    lib_files = {os.path.basename(x):os.path.dirname(x) for x in glob.glob(os.path.join(projectPath, 'Plugins/**/*.so'), recursive=True)}
+    for fullName in GetLibs(pluginPath):
+        lddInfoRaw = os.popen('ldd ' + fullName).read()
+        for rawInfoLine in lddInfoRaw.split('\n'):
+            if 'python' in rawInfoLine or 'rosidl_generator_py' in rawInfoLine:
+                soname = rawInfoLine.split('=>')[0].lstrip().rstrip()
+                os.system('patchelf --remove-needed ' + soname + ' ' + fullName)
+   
+
 # UE4.27 can't deal with so libs with version (for example libmyname.so.2.0.3)
 # you can fix it by adding:
 # /home/vilkun/UE/UnrealEngine/Engine/Source/Programs/UnrealBuildTool/Platform/Linux/LinuxToolChain.cs
@@ -177,7 +192,6 @@ def RenameLibsWithVersion(pluginPath, projectPath):
             if versionMarker in rawInfoLine and 'not found' in rawInfoLine:
                 libNameVersioning = rawInfoLine.split('=>')[0].lstrip().rstrip()
                 soname = libNameVersioning.split(versionMarker)[0] + '.so'
-
                 if soname in lib_files:
                     libsReplacements[libNameVersioning] = [soname, lib_files[soname]]
                 else:

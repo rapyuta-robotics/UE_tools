@@ -1,10 +1,64 @@
 UE_tools
 ==========
+# Overview
+This repo has tools to build and install ros2 lib to UnrealEngine Plugins.
+[rclUE](https://github.com/rapyuta-robotics/rclUE) has lib and codes build/generated from this repo.
+This repo can be used to build custom msg and install into your own UE plugins as well.
 
-# Generic usage
-- cmd
-    
-    `python3 build_install_codegen.py --type <base or pkgs> --codegen --build --config <path to yaml>`
+*[Details](#details) and [Module Overview](#module-overview) is for developers.
+
+# Build and install with docker
+Execute operation inside docker container and copy inside from container.
+
+Available images:
+- `yuokamoto1988/ue_ros_base:foxy` : Ubuntu 20.04 with ROS2 foxy
+- `yuokamoto1988/ue_ros_base:humble` : Ubuntu 22.04 with ROS2 humble
+
+## General usage
+- 
+    `python3 docker_build_install_codegen.py --type <base or pkgs> [--build] [--install] [--codegen] [--rosdistro <foxy or humble>]  [--config <path to yaml>]`
+- options
+    - --type: 
+        - base: Build core ros2 libs and copy to target plugin. see [ROS2 Lib Update](#ros2-lib-update) 
+        - pkgs: Build given pkgs in config and copy to target plugin . see [Interface update](#interface-update) 
+    - --build: 
+
+        Build core lib or pkgs in config under ros2_ws. `--type base --build` is done as part of Docker image build.
+    - --install:
+
+        install lib and header from ros2_ws. lib and headers are installed into UE project written in config file specify by `--config` option.
+    - --codegen: 
+
+        Generate UE code and copy to target plugins. Only valid with `--type pkgs`. Generated codes are copied to UE project written in config file specify by `--config` option.
+    - --config:
+
+        config file path. please refer default_config.yaml. you can provide multiple config file and parameters are overwritten by later config files. Scripts loads `default.config` always as a first yaml file.
+    - --pull_inside_docker:
+
+        Pull additional repo specified in config file inside or outside of docker. If you not specify this option, repo is copied in `<current dir>/tmp` dir, which is useful to clone private repos. Please refer ros2_additional_pkgs.repos.
+
+## Usage/example
+### Add custom lib to your Plugin
+1. Create yaml file which has path to your project and plugin which you want to install ros2 libs. Please refer default.yaml file as a config file template.
+2. `python3 docker_build_install_codegen.py --type pkgs --build --install --codegen --rosdistro foxy --config <path to your yaml file>`
+3. Update your plugin build.cs to build with lib and headers. Please refer rclUE.buid.cs.
+
+### Base roslib update in rclUE(for developer)
+    *This build operation is done as part of image build process. Please check Dockerfile.
+    *rclUE already has installed lib and headers and generated codes.
+    *You can run without `--build` to just install and generate code from docker container. 
+1. `python3 docker_build_install_codegen.py --type base [--build] --install --codegen --rosdistro foxy`
+ 
+
+
+## Docker Image build
+`docker build -t yuokamoto1988/ue_ros2_base:<foxy or humble> . --build-arg UBUNTU_VER=<20.04 or 22.04> --build-arg ROSDISTRO=<foxy or humble>`
+
+# Build and install without docker
+    *build inside docker is recommended.
+    *This can broke your locally installed ROS2. Please re-run `sudo apt install ros-<foxy or humble>-destop` after this operation.
+
+- `python3 build_install_codegen.py --type <base or pkgs> --codegen --build --config <path to yaml>`
 - options
     - --type: 
         - base: Build core ros2 libs and copy to target plugin. see [ROS2 Lib Update](#ros2-lib-update) 
@@ -17,11 +71,16 @@ UE_tools
         Generate UE code and copy to target plugins. Only valid with --type==pkgs
     - --config:
 
-        config file path. please refer default_config.yaml. you can provide multiple config file and parameters are overwritten by later config files.
+        Config file path. please refer default_config.yaml. you can provide multiple config file and parameters are overwritten by later config files.
+    - --skip_pull:
+        
+        Avoid pulling repos.
 
-*need to build core lib once with --type==base to build other pkgs.
+
+
+*need to build core lib once with `--type base` to build other pkgs.
+
 *this helper script uses [ROS2 Lib Update](#ros2-lib-update) and [Interface update](#interface-update) internally.
-
 
 # Module Overview
 
@@ -34,7 +93,7 @@ If you want to update ros2 lib in rclUE, need to follow [Build core lib](#build-
 
 ## Interface update
 
-Commonly used interfaces are inside rclUE, but sometime you want to use your custom msg from UnrealEngine.
+Commonly used interfaces such as std_msgs are inside rclUE, but sometime you want to use your custom msg from UnrealEngine.
 
 To use new msg in UnrealEngine Project,
 

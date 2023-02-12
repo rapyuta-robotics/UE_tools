@@ -2,7 +2,7 @@
 
 import argparse
 
-from build_and_install_ros2 import build_ros2
+from build_and_install_ros2 import build_ros2, install_ros2
 
 DEFAULT_ALLOWED_SPACES = [ 
     'fastcdr', 
@@ -13,6 +13,7 @@ DEFAULT_ALLOWED_SPACES = [
     'rmw', 
     'rosidl', 
     'tracetools', 
+    'ament'
     ]
 DEFAULT_NOT_ALLOWED_SPACES = [ 
     '.so.', 
@@ -31,8 +32,9 @@ DEFAULT_NOT_ALLOWED_SPACES = [
     'rosidl_cmake', 
     'rosidl_default', 
     'rosidl_generator_cpp', 
-    'rosidl_generator_dds_idl', 
     'rosidl_generator_py', 
+    'rosidl_generator_dds_idl', 
+    # 'rosidl_generator_py', 
     'rosidl_runtime_cpp', 
     'rosidl_runtime_py', 
     #msgs
@@ -106,13 +108,18 @@ if __name__ == '__main__':
         ue_plugin_folder_name = args.ue_plugin_name
 
     build_ros2(
-        UEPath = args.ue_path,
+        buildType = 'base',
+        allowed_spaces = DEFAULT_ALLOWED_SPACES,
+        pkgs = ['ue_msgs'],
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws')
+    )
+    install_ros2(
         projectPath = args.ue_proj_path,
         pluginName = args.ue_plugin_name,
         pluginFolderName = ue_plugin_folder_name,
         targetThirdpartyFolderName = args.ue_target_3rd_name,
         buildType = 'base',
+        ros_ws = os.path.join(os.getcwd(), '../ros2_ws'),
         allowed_spaces = DEFAULT_ALLOWED_SPACES,
         not_allowed_spaces = DEFAULT_NOT_ALLOWED_SPACES,
-        pkgs = ['ue_msgs'],
     )

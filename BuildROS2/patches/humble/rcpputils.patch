@@ -1,0 +1,13 @@
+diff --git a/src/find_library.cpp b/src/find_library.cpp
+index ce23987..6a333c0 100644
+--- a/src/find_library.cpp
++++ b/src/find_library.cpp
+@@ -66,7 +66,7 @@ std::string find_library_path(const std::string & library_name)
+       return path;
+     }
+   }
+-  return "";
++  return "lib" + library_name + ".so";
+ }
+ 
+ std::string path_for_library(const std::string & directory, const std::string & library_name)

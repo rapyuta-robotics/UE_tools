@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-UE_PROJ_PATH=${1:-~/UnrealEngine}
-ROS2_WS=$(pwd)/ros2_ws
-PKGS=$2
+ROS2_WS=$1
+ROS_DISTRO=$2
+PKGS=$3
 
 # build ros2
-./build_ros2_pkgs.sh $UE_PROJ_PATH $ROS2_WS "$PKGS"
+./build_ros2_pkgs.sh $ROS2_WS "$PKGS"
