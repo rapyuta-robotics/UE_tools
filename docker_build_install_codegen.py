@@ -52,7 +52,7 @@ if __name__ == '__main__':
     docker_hoeme_dir = '/home/' +  user
 
     # initialization of command and volumes for docker
-    volumes = [projectPath + ':' + docker_hoeme_dir + '/' + os.path.basename(projectPath)]
+    volumes = [projectPath + ':' + docker_hoeme_dir + projectPath.replace(home, '')]
     command = 'python3 build_install_codegen.py '
     
     # pass arg to command inside docker.
@@ -77,9 +77,11 @@ if __name__ == '__main__':
             if not os.path.exists('tmp'):
                 os.makedirs('tmp')
             cmd = 'vcs import --repos --debug ' + 'tmp' + ' < ' + os.path.join(home, repos)
+            print('Pull additional repos')
+            os.system(cmd)
             volumes.extend(create_dir_mount(os.path.join(cur_dir, 'tmp'), docker_hoeme_dir + '/UE_tools/ros2_ws/src/pkgs'))
         elif repos:
-            volumes.append(os.path.join(os.environ['HOME'], repos) + ':' + docker_hoeme_dir + '/' + os.path.basename(repos))
+            volumes.append(os.path.join(os.environ['HOME'], repos) + ':' + docker_hoeme_dir + repos.replace(home, ''))
 
     # mount config  
     for config_file in config_files:
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     if args.build and repos and args.pull_inside_docker:
         pull_cmd = '/bin/bash -c "vcs import --repos --debug ' + \
             docker_hoeme_dir + '/UE_tools/ros2_ws/src/pkgs' +  ' < ' + \
-            docker_hoeme_dir + '/' + os.path.basename(repos) + '"'
+            docker_hoeme_dir + repos.replace(home, '') + '"'
         print('Pull repo inside container with ' + pull_cmd)
         exec_run_with_log(container, pull_cmd)
 
