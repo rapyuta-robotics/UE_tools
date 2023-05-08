@@ -36,7 +36,7 @@ if __name__ == '__main__':
         default=""
     )
     parser.add_argument(
-        '--create_intermeditate_image', 
+        '--create_intermediate_image', 
         help='if user id is not 1000, this script overwrite id of files inside docker. Since it takes time to chown many files, you can save image by this option',
         action='store_true'
     )    
