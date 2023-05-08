@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # pass arg to command inside docker.
     arg_dict = vars(args)
     for arg in arg_dict:
-        if arg in ['ros_ws', 'config', 'docker_image', 'create_intermeditate_image']: #skip some args
+        if arg in ['ros_ws', 'config', 'docker_image', 'create_intermediate_image']: #skip some args
             continue
         arg_value = arg_dict[arg]
         if type(arg_value) == type(True):
