@@ -101,6 +101,10 @@ pushd $ROS2_WS
   sudo rosdep init
   rosdep update
   rosdep install --from-paths src --ignore-src -ry --skip-keys "fastcdr rti-connext-dds-5.3.1 rti-connext-dds-6.0.1 urdfdom_headers" --rosdistro $ROS2_DISTRO
+
+  # remove unused dds
+  sudo rm -r src/eclipse-cyclonedds
+
 popd
 
 #########################################################################

@@ -24,8 +24,11 @@ RUN sudo apt install -y tzdata && \
     sudo apt install -y python3 python3-pip git wget curl software-properties-common && \
     sudo pip3 install -r requirements.txt
 
-# build base libs
-RUN python3 build_install_codegen.py --type base --build --rosdistro $ROSDISTRO
+# build base libs and msgs
+RUN python3 build_install_codegen.py --type base --build --rosdistro $ROSDISTRO && \
+    python3 build_install_codegen.py --type pkgs --build --rosdistro $ROSDISTRO && \
+    rm -r ros2_ws/src ros2_ws/build ros2_ws/log
 
-# build base msgs
-RUN python3 build_install_codegen.py --type pkgs --build --rosdistro $ROSDISTRO
+
+ADD entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]

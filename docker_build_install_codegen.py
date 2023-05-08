@@ -17,8 +17,8 @@ def create_dir_mount(dir=os.getcwd(), target='', exception=[]):
             volumes.append(os.path.join(dir, f) + ':' + os.path.join(target, f))
     return volumes
 
-def exec_run_with_log(container, command):
-    _, stream = container.exec_run(command, stream=True)
+def exec_run_with_log(container, command, user):
+    _, stream = container.exec_run(command, user=user, stream=True)
     for data in stream:
         print(data.decode())        
 
@@ -35,6 +35,11 @@ if __name__ == '__main__':
         help='docker image name. if this is not provided, yuokamoto1988/ue_ros2_base:$ROSDISTRO is used',
         default=""
     )
+    parser.add_argument(
+        '--create_intermediate_image', 
+        help='if user id is not 1000, this script overwrite id of files inside docker. Since it takes time to chown many files, you can save image by this option',
+        action='store_true'
+    )    
     args = parser.parse_args()
     
     config_files = ['default_config.yaml']
@@ -58,7 +63,7 @@ if __name__ == '__main__':
     # pass arg to command inside docker.
     arg_dict = vars(args)
     for arg in arg_dict:
-        if arg in ['ros_ws', 'config', 'docker_image']: #skip some args
+        if arg in ['ros_ws', 'config', 'docker_image', 'create_intermediate_image']: #skip some args
             continue
         arg_value = arg_dict[arg]
         if type(arg_value) == type(True):
@@ -90,7 +95,12 @@ if __name__ == '__main__':
         volumes.append(os.path.abspath(config_file) + ':' + target_path)
         command += ' --config ' + target_path
     
-
+    # update volume mode
+    for i, v in enumerate(volumes):
+        volumes[i] += ':rw'
+    # volumes.append('/etc/group:/etc/group:ro')
+    # volumes.append('/etc/passwd:/etc/passwd:ro')
+    
     # create containers
     client = docker.from_env()
     container_name = 'ue_ros2_base'
@@ -106,21 +116,37 @@ if __name__ == '__main__':
         docker_image = DOCKER_IMAGE + ':' + args.rosdistro
     print('Run docker conatiner named:' + container_name)
     print(' image name:', docker_image)
-    print(' mount volumes:', volumes)
+    # print(' mount volumes:', volumes)
     container = client.containers.run(
         docker_image, 
         'sleep infinity', 
+        user=0, #os.getuid(),
+        environment={
+            "USER_ID":str(os.getuid()), 
+            "GROUP_ID":str(os.getgid())
+        },
         name=container_name, 
         volumes=volumes,
         detach=True)
+
+    print('Change dir owner to same id as current user')
+    exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
+    exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
+    if args.create_intermediate_image:
+        os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
+        print('Commit image after chown as ' + docker_image + '_chown')
+
 
     if args.build and repos and args.pull_inside_docker:
         pull_cmd = '/bin/bash -c "vcs import --repos --debug ' + \
             docker_hoeme_dir + '/UE_tools/ros2_ws/src/pkgs' +  ' < ' + \
             docker_hoeme_dir + repos.replace(home, '') + '"'
         print('Pull repo inside container with ' + pull_cmd)
-        exec_run_with_log(container, pull_cmd)
+        exec_run_with_log(container, pull_cmd, user='admin')
 
     # execute command
     print('Execute command in conatainer: ' + command)
-    exec_run_with_log(container, command)
+    exec_run_with_log(container, command, user='admin')
+
+
+    # exec_run_with_log(container, 'env', user='admin')

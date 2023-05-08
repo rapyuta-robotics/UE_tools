@@ -379,7 +379,7 @@ def getter_AoS(r, v_ue, v_ros, size, ros_msg_type, ros_msg_sequence_type):
                    ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
                     '}' + '\n\t\t' + \
                    'if (!' + ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ')) {' + \
-                        'UE_LOG(LogTemp, Error, TEXT(\"failed to create array for field ' + v_ros_size + '  \"));' + \
+                        'UE_LOG_WITH_INFO(LogTemp, Error, TEXT(\"failed to create array for field ' + v_ros_size + '  \"));' + \
                     '}' + '\n\t\t' + head
             # head = ros_msg_sequence_type + '__fini(&' + v_ros_size + ');' + '\n\t\t' + \
             #         ros_msg_sequence_type + '__init(&' + v_ros_size + ', ' + size_str + ');' + \
