@@ -130,7 +130,7 @@ if __name__ == '__main__':
     print('Change dir owner to same id as current user')
     exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
     exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
-    if args.create_intermeditate_image:
+    if args.create_intermediate_image:
         os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
         print('Commit image after chown as ' + docker_image + '_chown')
 
