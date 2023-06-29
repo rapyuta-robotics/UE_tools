@@ -81,10 +81,17 @@ if __name__ == '__main__':
         if not args.pull_inside_docker:
             if not os.path.exists('tmp'):
                 os.makedirs('tmp')
-            cmd = 'vcs import --repos --debug ' + 'tmp' + ' < ' + os.path.join(home, repos)
-            print('Pull additional repos')
-            os.system(cmd)
-            volumes.extend(create_dir_mount(os.path.join(cur_dir, 'tmp'), docker_hoeme_dir + '/UE_tools/ros2_ws/src/pkgs'))
+            if not os.path.exists('tmp/pkgs'):
+                os.makedirs('tmp/pkgs')
+            if not os.path.exists('tmp/ros2'):
+                os.makedirs('tmp/ros2')
+            
+            print('Pull repos')
+            os.system('vcs import --repos --debug ' + 'tmp/pkgs' + ' < ' + os.path.join(home, repos))
+            os.system('wget https://raw.githubusercontent.com/ros2/ros2/' + args.rosdistro + '/ros2.repos')
+            os.system('vcs import --repos --debug  tmp/ros2 < ros2.repos')
+            os.system('touch tmp/ros2/ros2/example_interfaces/COLCON_IGNORE')
+            volumes.extend(create_dir_mount(os.path.join(cur_dir, 'tmp'), docker_hoeme_dir + '/UE_tools/ros2_ws/src'))
         elif repos:
             volumes.append(os.path.join(os.environ['HOME'], repos) + ':' + docker_hoeme_dir + repos.replace(home, ''))
 
@@ -129,12 +136,13 @@ if __name__ == '__main__':
         volumes=volumes,
         detach=True)
 
-    print('Change dir owner to same id as current user')
-    exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
-    exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
-    if args.create_intermediate_image:
-        os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
-        print('Commit image after chown as ' + docker_image + '_chown')
+    if os.getuid() != 1000:
+        print('Change dir owner to same id as current user')
+        exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
+        exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
+        if args.create_intermeditate_image:
+            os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
+            print('Commit image after chown as ' + docker_image + '_chown')
 
 
     if args.build and repos and args.pull_inside_docker:
