@@ -1,4 +1,4 @@
-# Copyright 2021-2022 Rapyuta Robotics Co., Ltd.
+# Copyright 2021-2023 Rapyuta Robotics Co., Ltd.
 import argparse
 import os
 import shutil
