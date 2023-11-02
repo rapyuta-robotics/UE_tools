@@ -32,7 +32,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}SGReq
 public:
 	{{data.GoalConstantsDec}}
   	
-	TArray<uint, TFixedAllocator<16>> GoalId;
+	TArray<uint8, TFixedAllocator<16>> GoalId;
 
 	{{data.GoalTypes}}
 
@@ -94,7 +94,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}GRReq
 	GENERATED_BODY()
 
 public:
-  	TArray<uint, TFixedAllocator<16>> GoalId;
+  	TArray<uint8, TFixedAllocator<16>> GoalId;
 
     FROS{{data.UEName}}GRReq()
     {
@@ -158,7 +158,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}FB
 public:
 	{{data.FeedbackConstantsDec}}
 
-  	TArray<uint, TFixedAllocator<16>> GoalId;
+  	TArray<uint8, TFixedAllocator<16>> GoalId;
 
 	{{data.FeedbackTypes}}
 
