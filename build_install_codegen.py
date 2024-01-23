@@ -110,6 +110,8 @@ def load_from_config(file_name, dependency, name_mapping):
     if 'dependency' in config:
         dependency = config['dependency']
         if dependency == 'default':
+            import CodeGen.gen_ue_from_ros as cg
+            dependency = cg.DEFAULT_DEPENDENCY_PKGS
             print('Use default dependency')
         elif dependency == 'target':
             print('Use target as a dependency')

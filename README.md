@@ -39,8 +39,9 @@ Available images:
 
 ## Usage/example
 ### Add custom lib to your Plugin
-1. Create yaml file which has path to your project and plugin which you want to install ros2 libs. Please refer default.yaml file as a config file template.
+1. Create yaml file which has path to your project and plugin which you want to install ros2 libs. Please refer default.yaml file as a config file template. 
 2. `python3 docker_build_install_codegen.py --type pkgs --build --install --codegen --rosdistro foxy --config <path to your yaml file>`
+    1. example is `custom_config.yaml`
 3. Update your plugin build.cs to build with lib and headers. Please refer rclUE.buid.cs.
 
 ### Base roslib update in rclUE(for developer)
@@ -81,6 +82,21 @@ Available images:
 *need to build core lib once with `--type base` to build other pkgs.
 
 *this helper script uses [ROS2 Lib Update](#ros2-lib-update) and [Interface update](#interface-update) internally.
+
+## Usage/example
+### Add custom lib to your Plugin
+1. Create yaml file which has path to your project and plugin which you want to install ros2 libs. Please refer default.yaml file as a config file template.
+2. build ros2 base and base msg. This will build pkgs inside `ros2_ws` dir
+    ```
+    python3 build_install_codegen.py --type base --build
+    python3 build_install_codegen.py --type pkgs --build
+    ```
+3. build your custom msgs
+    ```
+    python3 build_install_codegen.py --type pkgs --build --codegen --install --config custom_config.yaml 
+
+    ```
+4. Update your plugin build.cs to build with lib and headers. Please refer rclUE.buid.cs.
 
 # Module Overview
 
