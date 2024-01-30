@@ -1,0 +1,73 @@
+args: #path is relative from home
+  ue_path: UnrealEngine
+  ue_proj_path: rclUE-Examples 
+  ue_plugin_name: rclUE 
+  ue_plugin_folder_name: rclUE
+  ue_target_3rd_name: ros # sub dir name under ThirdParty
+
+
+# additional repos file path. path is relative from home
+repos: UE_tools/ros2_custom_pkgs.repos
+
+## build and code gen target msgs
+## pkgs and prefix for class
+target_pkgs: 
+  nav2_msgs: ''
+
+## if dependency is "targe", it used same value as target
+## elif dependency is "default", it uses default value defined in script
+# dependency: "target" 
+# dependency: "default"
+dependency: 
+  action_msgs: ''
+  std_msgs: ''
+  builtin_interfaces: ''
+  geometry_msgs: ''
+  action_msgs: ''
+  nav_msgs: ''
+  geographic_msgs: ''
+  unique_identifier_msgs: ''
+
+## additional dependency
+## this dict is appended on dependency. 
+## Used to add dependency without overwriting original dependency.
+# dependency_append: ''
+  # your_msg: ''
+
+name_mapping:
+  Covariance: 'Cov'
+  Accel: 'Acc'
+  Vector: 'Vec'
+  Quaternion: 'Quat'
+  Trajectory: 'Traj'
+  Transform: 'TF'
+  Compressed: 'Comp'
+  Error: 'Err'
+  Diagnostics: 'Diag'
+  MultiArray: 'MA'
+  Dimension: 'Dim'
+  With: ''
+  Destination: 'Dest'
+  Reservation: 'Reserv'
+  Exception: 'Except'
+  Config: 'Conf'
+  InteractiveMarker: 'IM'
+  Control: 'Ctrl'
+  Request: 'Req'
+  Response: 'Res'
+  Message: 'Msg'
+  String: 'Str'
+  Image: 'Img'
+  Odometry: 'Odom'
+  Hardware: 'HW'
+
+## additional name_mapping
+## this dict is appended on name_mapping. 
+## Used to add name_mapping without overwriting original dependency.
+# name_mapping_append: 
+#   your_mapping_key: 'your_mapping_value'
+
+
+# msgs which is not copied to project.
+# black_list_msgs:
+#   - 'ROS2WStr' # can't handle wstring in UE.

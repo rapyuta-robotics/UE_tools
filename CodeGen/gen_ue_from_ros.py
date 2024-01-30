@@ -522,6 +522,7 @@ def msg_cleanup(type_ros):
 
 # return msg, srv or action
 def get_msg_type(type_ros, types_dict):
+    msg_type = None
     r = msg_cleanup(type_ros)
     for t in types_dict:
         if r in types_dict[t]:
@@ -529,6 +530,7 @@ def get_msg_type(type_ros, types_dict):
             break
     if msg_type is None:
         logger.error('get headers: can\'t find include target for ros:{}'.format(r))
+
     return msg_type
 
 def get_headers(type_ue, type_ros, types_dict):
