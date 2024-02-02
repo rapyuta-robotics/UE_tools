@@ -27,7 +27,10 @@ export MY_LINKER_FLAGS="-latomic "\
 "-Wl,-rpath-link=/usr/lib/x86_64-linux-gnu "\
 "-Wl,-rpath-link=/usr/lib "
 
+echo build $PKGS
+
 pushd $ROS2_WS
+    source install/setup.bash
     colcon build \
         --packages-skip-build-finished \
         --packages-up-to $PKGS \

@@ -88,9 +88,10 @@ if __name__ == '__main__':
             
             print('Pull repos')
             os.system('vcs import --repos --debug ' + 'tmp/pkgs' + ' < ' + os.path.join(home, repos))
-            os.system('wget https://raw.githubusercontent.com/ros2/ros2/' + args.rosdistro + '/ros2.repos')
-            os.system('vcs import --repos --debug  tmp/ros2 < ros2.repos')
-            os.system('touch tmp/ros2/ros2/example_interfaces/COLCON_IGNORE')
+            if args.type == 'base':
+                os.system('wget https://raw.githubusercontent.com/ros2/ros2/' + args.rosdistro + '/ros2.repos')
+                os.system('vcs import --repos --debug  tmp/ros2 < ros2.repos')
+                os.system('touch tmp/ros2/ros2/example_interfaces/COLCON_IGNORE')
             volumes.extend(create_dir_mount(os.path.join(cur_dir, 'tmp'), docker_hoeme_dir + '/UE_tools/ros2_ws/src'))
         elif repos:
             volumes.append(os.path.join(os.environ['HOME'], repos) + ':' + docker_hoeme_dir + repos.replace(home, ''))
