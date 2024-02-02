@@ -11,8 +11,8 @@ This repo can be used to build custom msg and install into your own UE plugins a
 Execute operation inside docker container and copy inside from container.
 
 Available images:
-- `yuokamoto1988/ue_ros_base:foxy` : Ubuntu 20.04 with ROS2 foxy
-- `yuokamoto1988/ue_ros_base:humble` : Ubuntu 22.04 with ROS2 humble
+- `yuokamoto1988/ue_ros2_base:foxy` : Ubuntu 20.04 with ROS2 foxy
+- `yuokamoto1988/ue_ros2_base:humble` : Ubuntu 22.04 with ROS2 humble
 
 ## General usage
 - 
