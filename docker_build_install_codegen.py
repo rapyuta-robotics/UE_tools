@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-        target, black_list, dependency, name_mapping, repos = load_from_configs(config_files, args.ros_ws, False, False)
+        target, black_list, dependency, name_mapping, repos, ignore_deprecated_msg = load_from_configs(config_files, args.ros_ws, False, False)
 
     # common params
     user = 'admin'
