@@ -970,7 +970,7 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
 # main process
 ############################################
 
-def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.getcwd(), '../ros2_ws'),):
+def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.getcwd(), '../ros2_ws'), ignore_deprecated_msg = True):
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
     current_dir = os.getcwd()
@@ -1042,7 +1042,7 @@ def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.g
                 name_cap = snake_to_pascal(name)
 
                 logger.debug(' INPUT ROS2 FILE:' + os.path.basename(file_path))
-                if check_ros_deprecated(file_path):
+                if ignore_deprecated_msg and check_ros_deprecated(file_path):
                     continue
 
                 info = {}
@@ -1194,6 +1194,7 @@ if __name__ == "__main__":
     parser.add_argument('--target', nargs='*', help='path to directory which has target msg files')
     parser.add_argument('--name_mapping', nargs='*', default=DEFAULT_NAME_MAPPING, help='name mapping to replace specific words.')
     parser.add_argument('--ue_target_ros_wrapper_path', default='', help='path to directory which has header files')
+    parser.add_argument('--ignore_deprecated_msg', default=True, help='Ignore deprecated msg or not')
     args = parser.parse_args()
 
     target = args.target
@@ -1204,5 +1205,6 @@ if __name__ == "__main__":
         module = args.module,
         dependency = args.dependency,
         target = target,
-        name_mapping = args.name_mapping
+        name_mapping = args.name_mapping,
+        ignore_deprecated_msg = args.ignore_deprecated_msg
     )

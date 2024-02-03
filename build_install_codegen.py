@@ -35,7 +35,7 @@ def load_from_configs(file_names, ros2_ws, pull = True, remove = True):
     for file in file_names:
         UEPath, projectPath, pluginName, \
             pluginFolderName, targetThirdpartyFolderName, \
-                target, black_list, dependency, name_mapping, repos = load_from_config(file, dependency, name_mapping)
+                target, black_list, dependency, name_mapping, repos, ignore_deprecated_msg = load_from_config(file, dependency, name_mapping)
     
     # cleanup
     additonal_pkg_path = os.path.join(ros2_ws, 'src/pkgs')
@@ -52,7 +52,7 @@ def load_from_configs(file_names, ros2_ws, pull = True, remove = True):
 
     return UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-            target, black_list, dependency, name_mapping, repos
+            target, black_list, dependency, name_mapping, repos, ignore_deprecated_msg
 
 def load_from_config(file_name, dependency, name_mapping):
     try:
@@ -146,9 +146,13 @@ def load_from_config(file_name, dependency, name_mapping):
             print('name_mapping_append must be dictionary')
             sys.exit(0)
     
+    ignore_deprecated_msg = True
+    if 'ignore_deprecated_msg' in config:
+        ignore_deprecated_msg = config['ignore_deprecated_msg']
+    
     return UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-            target, black_list, dependency, name_mapping, repos
+            target, black_list, dependency, name_mapping, repos, ignore_deprecated_msg
 
 def args_setup():
     parser = argparse.ArgumentParser(
@@ -222,7 +226,7 @@ if __name__ == '__main__':
 
     UEPath, projectPath, pluginName, \
         pluginFolderName, targetThirdpartyFolderName, \
-        target, black_list, dependency, name_mapping, repos = load_from_configs(config_files, args.ros_ws, not args.skip_pull, args.remove and args.type == 'pkgs')
+        target, black_list, dependency, name_mapping, repos, ignore_deprecated_msg = load_from_configs(config_files, args.ros_ws, not args.skip_pull, args.remove and args.type == 'pkgs')
 
     # build lib and copy to ue project
     if args.build or args.install:
@@ -280,7 +284,8 @@ if __name__ == '__main__':
                 dependency = dependency,
                 target = target,
                 name_mapping = name_mapping,
-                ros_ws = args.ros_ws
+                ros_ws = args.ros_ws,
+                ignore_deprecated_msg = ignore_deprecated_msg
             )
             
             # post generate. copy generated code to ue project

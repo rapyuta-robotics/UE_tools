@@ -9,9 +9,12 @@ args: #path is relative from home
 # additional repos file path. path is relative from home
 repos: UE_tools/ros2_custom_pkgs.repos
 
+ignore_deprecated_msg: False # needs to be false to generate deprecated std_msgs
+
 ## build and code gen target msgs
 ## pkgs and prefix for class
 target_pkgs: 
+  std_msgs: 'StdMsg'
   nav2_msgs: ''
 
 ## if dependency is "targe", it used same value as target
@@ -20,7 +23,6 @@ target_pkgs:
 # dependency: "default"
 dependency: 
   action_msgs: ''
-  std_msgs: ''
   builtin_interfaces: ''
   geometry_msgs: ''
   action_msgs: ''
