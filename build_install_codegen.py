@@ -7,6 +7,8 @@ import argparse
 import yaml
 from contextlib import contextmanager
 
+import jinja2
+
 @contextmanager
 def managed_chdir(path):
     prev_path = os.getcwd()
@@ -191,7 +193,7 @@ def args_setup():
     )
     parser.add_argument(
         '--rosdistro', 
-        choices=['foxy', 'humble'],
+        choices=['foxy', 'humble', 'jazzy'],
         default='humble'
     )
     parser.add_argument(
@@ -204,7 +206,6 @@ def args_setup():
     return parser
 
 if __name__ == '__main__':
-
     parser = args_setup()
     parser.add_argument(
         '--remove', 

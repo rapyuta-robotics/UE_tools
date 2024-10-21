@@ -58,6 +58,7 @@ if __name__ == '__main__':
 
     # initialization of command and volumes for docker
     volumes = [projectPath + ':' + docker_hoeme_dir + projectPath.replace(home, '')]
+
     command = 'python3 build_install_codegen.py '
     
     # pass arg to command inside docker.
@@ -154,8 +155,10 @@ if __name__ == '__main__':
         exec_run_with_log(container, pull_cmd, user='admin')
 
     # execute command
-    print('Execute command in conatainer: ' + command)
-    exec_run_with_log(container, command, user='admin')
-
-
-    # exec_run_with_log(container, 'env', user='admin')
+    if args.rosdistro == 'jazzy': # todo: this works for humble and foxy as well?
+        command = "/bin/bash -c 'source .python3_venv/bin/activate && " + command + "'"
+        print('Execute command in conatainer: ' + command)
+        os.system('docker exec -it ' + container_name + ' ' + command)
+    else:
+        print('Execute command in conatainer: ' + command)
+        exec_run_with_log(container, command, user='admin') # this does not work with jazzy somehow

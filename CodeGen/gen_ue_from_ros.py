@@ -12,6 +12,8 @@ import argparse
 from pathlib import Path
 
 import logging
+
+
 logging.basicConfig(
     level=logging.INFO,
     handlers=[
@@ -144,7 +146,7 @@ def convert_to_ue_type(t, pkgs_name_mapping, name_mapping):
         t = t.replace('[]','')
         t = f'TArray<{convert_to_ue_type(t, pkgs_name_mapping, name_mapping)[0]}>'
     elif ('[' in t) and (']' in t):
-        tmp = re.split('\[|\]', t)
+        tmp = re.split(r'\[|\]', t)
         size = tmp[1].replace('<=','')
         t = f'TArray<{convert_to_ue_type(tmp[0], pkgs_name_mapping, name_mapping)[0]}>'
     elif t in TYPE_CONVERSION :
@@ -255,7 +257,7 @@ def get_ros_var_name(original_names={}):
     if len(original_names) == 2:
         vartype = original_names[0]
         varname = original_names[1]
-        if re.search('\[\d+\]', original_names[0]) is not None:
+        if re.search(r'\[\d+\]', original_names[0]) is not None:
             varname += '[i]'
         elif '[]' in original_names[0] or '[<=' in original_names[0]:
             varname += '.data[i]'
@@ -1029,7 +1031,7 @@ def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.g
         logger.debug('[ROS2 PKG SHARE PATH]: {}'.format(subdir_path))
 
         for subdir in SUB_DIRS:
-            file_type = os.path.dirname(subdir) if '\/' in subdir else subdir
+            file_type = os.path.dirname(subdir) if r'\/' in subdir else subdir
             logger.info('INPUT ROS2 DIR:' + subdir_path + ' -> Output DIR:' + current_dir)
             for file_path in Path(subdir_path).rglob(f'*.{file_type}'):
                 
@@ -1052,7 +1054,7 @@ def codegen(module, dependency, target, name_mapping, ros_ws = os.path.join(os.g
                 
                 # PascalCase to snake_case; correctly handles acronyms: TLA -> tla instead of t_l_a
                 name_lower = re.sub(
-                    '([a-z0-9])([A-Z])', r'\1_\2', re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
+                    r'([a-z0-9])([A-Z])', r'\1_\2', re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)).lower()
                 info['Name'] = name_lower
                 info['NameCap'] = name_cap
                 info['UEName'] = ue_name

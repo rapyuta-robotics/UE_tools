@@ -13,10 +13,11 @@ Execute operation inside docker container and copy inside from container.
 Available images:
 - `yuokamoto1988/ue_ros2_base:foxy` : Ubuntu 20.04 with ROS2 foxy
 - `yuokamoto1988/ue_ros2_base:humble` : Ubuntu 22.04 with ROS2 humble
+- `yuokamoto1988/ue_ros2_base:jazzy` : Ubuntu 24.04 with ROS2 jazzy
 
 ## General usage
 - 
-    `python3 docker_build_install_codegen.py --type <base or pkgs> [--build] [--install] [--codegen] [--rosdistro <foxy or humble>]  [--config <path to yaml>]`
+    `python3 docker_build_install_codegen.py --type <base or pkgs> [--build] [--install] [--codegen] [--rosdistro <foxy, humble or jazzy>]  [--config <path to yaml>]`
 - options
     - --type: 
         - base: Build core ros2 libs and copy to target plugin. see [ROS2 Lib Update](#ros2-lib-update) 
@@ -53,11 +54,11 @@ Available images:
 
 
 ## Docker Image build
-`docker build -t yuokamoto1988/ue_ros2_base:<foxy or humble> . --build-arg UBUNTU_VER=<20.04 or 22.04> --build-arg ROSDISTRO=<foxy or humble>`
+`./build_docker.sh <foxy, humble or jazzy>`
 
 # Build and install without docker
     *build inside docker is recommended.
-    *This can broke your locally installed ROS2. Please re-run `sudo apt install ros-<foxy or humble>-destop` after this operation.
+    *This can broke your locally installed ROS2. Please re-run `sudo apt install ros-<foxy, humble or jazzy>-destop` after this operation.
 
 - `python3 build_install_codegen.py --type <base or pkgs> --codegen --build --config <path to yaml>`
 - options

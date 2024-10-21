@@ -1,0 +1,20 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e4e8c41aa..d2feb3d29 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -161,7 +161,9 @@ if(NOT BUILD_SHARED_LIBS)
+ endif()
+ 
+ eprosima_find_package(fastcdr REQUIRED)
++set(EPROSIMA_BUILD ON)
+ eprosima_find_thirdparty(Asio asio VERSION 1.10.8)
++set(EPROSIMA_BUILD OFF)
+ eprosima_find_thirdparty(TinyXML2 tinyxml2)
+ 
+ find_package(foonathan_memory REQUIRED)
+diff --git a/thirdparty/asio b/thirdparty/asio
+--- a/thirdparty/asio
++++ b/thirdparty/asio
+@@ -1 +1 @@
+-Subproject commit b84e6c16b2ea907dbad94206b7510d85aafc0b42
++Subproject commit b84e6c16b2ea907dbad94206b7510d85aafc0b42-dirty
