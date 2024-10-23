@@ -55,7 +55,11 @@ sudo apt update && sudo apt install -y \
   python3-vcstool \
   wget
 # install some pip packages needed for testing
+if [ $ROSDISTRO = "jazzy" ]; then
+  ADDITIONAL_PYTHON_OPTION=--break-system-packages
+fi
 python3 -m pip install -U \
+  $ADDITIONAL_PYTHON_OPTION \
   argcomplete \
   flake8-blind-except \
   flake8-builtins \
