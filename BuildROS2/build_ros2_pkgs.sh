@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ROS2_WS=$1
-PKGS=$2
+ROS_DISTRO=$2
+PKGS=$3
 
 # cleanup
 for d in $2 ; 
@@ -16,9 +17,14 @@ export LANG=en_US.UTF-8
 # pay attention it can be 'rmw_fastrtps_dynamic_cpp' too
 export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
-# use locally installed clang-13
-export CC="/usr/bin/clang-13"
-export CXX="/usr/bin/clang++-13"
+# use locally installed clang
+CLANG_VER=13
+if [ $ROS_DISTRO == "jazzy" ]; then
+  CLANG_VER=18
+fi
+
+export CC="/usr/bin/clang-$CLANG_VER"
+export CXX="/usr/bin/clang++-$CLANG_VER"
 
 
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418

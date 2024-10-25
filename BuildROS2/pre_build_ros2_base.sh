@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #########################################################################
-# install ros2 $ROS2_DISTRO
-# https://docs.ros.org/en/$ROS2_DISTRO/Installation/Ubuntu-Development-Setup.html
+# install ros2 $ROS_DISTRO
+# https://docs.ros.org/en/$ROS_DISTRO/Installation/Ubuntu-Development-Setup.html
 #########################################################################
 
 ROS2_WS=$1
-ROS2_DISTRO=$2
+ROS_DISTRO=$2
 
 echo "
 ########################
-Install ROS2 $ROS2_DISTRO
+Install ROS2 $ROS_DISTRO
 ########################
 "
 
@@ -55,7 +55,7 @@ sudo apt update && sudo apt install -y \
   python3-vcstool \
   wget
 # install some pip packages needed for testing
-if [ $ROSDISTRO = "jazzy" ]; then
+if [ $ROS_DISTRO == "jazzy" ]; then
   ADDITIONAL_PYTHON_OPTION=--break-system-packages
 fi
 python3 -m pip install -U \
@@ -89,14 +89,14 @@ Get ROS2 source
 ## Get ROS2 code
 mkdir -p $ROS2_WS/src
 pushd $ROS2_WS
-  wget https://raw.githubusercontent.com/ros2/ros2/$ROS2_DISTRO/ros2.repos
+  wget https://raw.githubusercontent.com/ros2/ros2/$ROS_DISTRO/ros2.repos
   vcs import src < ros2.repos
 
   echo "
-  ##############################################
-  Ignore ros1_bridge and example_interfaces. 
-  ###############################################
-  "
+##############################################
+Ignore ros1_bridge and example_interfaces. 
+###############################################
+"
   touch src/ros2/ros1_bridge/COLCON_IGNORE
   touch src/ros2/example_interfaces/COLCON_IGNORE
 
@@ -104,7 +104,7 @@ pushd $ROS2_WS
   #sudo apt upgrade
   sudo rosdep init
   rosdep update
-  rosdep install --from-paths src --ignore-src -ry --skip-keys "fastcdr rti-connext-dds-5.3.1 rti-connext-dds-6.0.1 urdfdom_headers" --rosdistro $ROS2_DISTRO
+  rosdep install --from-paths src --ignore-src -ry --skip-keys "fastcdr rti-connext-dds-5.3.1 rti-connext-dds-6.0.1 urdfdom_headers" --rosdistro $ROS_DISTRO
 
   # remove unused dds
   sudo rm -r src/eclipse-cyclonedds
@@ -123,21 +123,21 @@ Reinstall python package due to issues
 "
 
 sudo apt remove shiboken2 libshiboken2-dev libshiboken2-py3-5.14 -y
-pip3 install shiboken2
+pip3 install $ADDITIONAL_PYTHON_OPTION shiboken2
 
 echo "
 #######################
 Clone rclc 
 ########################
 "
-git clone --branch $ROS2_DISTRO https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
+git clone --branch $ROS_DISTRO https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
 
 echo "
 #######################
 Patch rcpputils 
 ########################
 "
-patch_path=$(pwd)/patches/$ROS2_DISTRO
+patch_path=$(pwd)/patches/$ROS_DISTRO
 echo $patch_path
 pushd $ROS2_WS/src/ros2/rcpputils
   git apply $patch_path/rcpputils.patch

@@ -7,4 +7,4 @@ ROS_DISTRO=$2
 ./pre_build_ros2_base.sh $ROS2_WS $ROS_DISTRO
 
 # build ros2
-./build_ros2_base.sh $ROS2_WS
+./build_ros2_base.sh $ROS2_WS $ROS_DISTRO
