@@ -732,10 +732,15 @@ def get_types_dict(target_paths):
                 # sprit type and name
                 content = [c.split()[0:2] if c != '---' else c for c in content ]
 
-                # make full type name
+
+                # make full type name                    
                 for c in content:
                     if c == '---':
                         continue
+
+                    # temp remove string length limit
+                    c[0] = re.sub(r'string<=\d+', 'string', c[0])
+
                     temp_name = re.sub(r'<=', '', c[0])
                     temp_name = re.sub(r'\[\d*\]', '', temp_name)
                     if temp_name not in ROS_BUILDIN_TYPES and '/' not in temp_name:
@@ -866,7 +871,7 @@ def get_types_cpp(target_paths, pkgs_name_mapping, name_mapping):
                     constants['getter'] += cgetter
                     constants['def'] += cdef
                     continue
-
+                
                 res_ue = get_ue_var_name(v, pkgs_name_mapping, name_mapping)
                 logger.debug("res_ue: {}".format(res_ue))
                 res_ros = get_ros_var_name(v)

@@ -5,10 +5,10 @@ ROS_DISTRO=$2
 PKGS=$3
 
 # cleanup
-for d in $2 ; 
+for d in $PKGS ; 
 do
-    rm -r  $1/build/$d
-    rm -r  $1/install/$d
+    rm -r  $ROS2_WS/build/$d
+    rm -r  $ROS2_WS/install/$d
 done
 
 export LANG=en_US.UTF-8

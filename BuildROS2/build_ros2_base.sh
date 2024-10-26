@@ -4,8 +4,8 @@ ROS2_WS=$1
 ROS_DISTRO=$2
 
 cleanup() {
-    sudo rm -r -f $1/build $1/install $1/log
-    sudo rm -r -f $1/build_renamed $1/install_renamed
+    sudo rm -r -f $ROS2_WS/build $ROS2_WS/install $ROS2_WS/log
+    sudo rm -r -f $ROS2_WS/build_renamed $ROS2_WS/install_renamed
 }
 
 cleanup $ROS2_WS

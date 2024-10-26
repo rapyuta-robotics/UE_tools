@@ -179,4 +179,10 @@ sudo apt-get install libacl1-dev -y
 # clang-13
 sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
 sudo apt update
-sudo apt install clang-13 -y
+
+CLANG_VER=13
+if [ $ROS_DISTRO == "jazzy" ]; then
+  CLANG_VER=18
+fi
+
+sudo apt install clang-$CLANG_VER -y
