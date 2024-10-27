@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    config_files = ['default_config.yaml']
+    config_files = ['default_config.yaml.'+args.rosdistro]
     if args.config is not None:
         config_files.extend(args.config)
 

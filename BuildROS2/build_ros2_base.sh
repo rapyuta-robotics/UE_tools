@@ -31,8 +31,8 @@ if [ $ROS_DISTRO == "jazzy" ]; then
   CLANG_VER=18
 fi
 
-export CC="/usr/bin/clang-$CLANG_VER"
-export CXX="/usr/bin/clang++-$CLANG_VER"
+export CC="/usr/bin/clang"
+export CXX="/usr/bin/clang++"
 
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418
 export MY_LINKER_FLAGS="-latomic "\

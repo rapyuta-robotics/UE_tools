@@ -41,20 +41,19 @@ Available images:
 ## Usage/example
 ### Add custom lib to your Plugin
 1. Create yaml file which has path to your project and plugin which you want to install ros2 libs. Please refer default.yaml file as a config file template. 
-2. `python3 docker_build_install_codegen.py --type pkgs --build --install --codegen --rosdistro foxy --config <path to your yaml file>`
+2. `python3 docker_build_install_codegen.py --type pkgs --build --install --codegen --rosdistro  <foxy, humble or jazzy> --config <path to your yaml file>`
     1. example is `custom_config.yaml`
 3. Update your plugin build.cs to build with lib and headers. Please refer rclUE.buid.cs.
 
-### Base roslib update in rclUE(for developer)
+*Please check [CustomMsgExample](https://github.com/yuokamoto/rclUE-Examples/blob/custom_msg_example/Plugins/CustomMsgExample/README.md) as a example of custom msg in different plugin then rclUE.
+
+
+## Docker Image build and update rclUE(for developer) 
+1. buidl image: `./build_docker.sh <foxy, humble or jazzy>`
     *This build operation is done as part of image build process. Please check Dockerfile.
     *rclUE already has installed lib and headers and generated codes.
-    *You can run without `--build` to just install and generate code from docker container. 
-1. `python3 docker_build_install_codegen.py --type base [--build] --install --codegen --rosdistro foxy`
- 
-
-
-## Docker Image build
-`./build_docker.sh <foxy, humble or jazzy>`
+2. copy base libs: `python3 docker_build_install_codegen.py --type base --install --codegen --rosdistro <foxy, humble or jazzy>`
+3. copy base msgs: `python3 docker_build_install_codegen.py --type pkgs --install --codegen --rosdistro <foxy, humble or jazzy>`
 
 # Build and install without docker
     *build inside docker is recommended.

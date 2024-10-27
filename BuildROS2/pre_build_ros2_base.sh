@@ -153,6 +153,9 @@ echo "
 #############################################################
 "
 pushd $ROS2_WS/src/eProsima/Fast-DDS
+if [ $ROS_DISTRO == "foxy" ]; then
+  git checkout 2.1.2 #temp hack since 2.1.x is deleted
+fi
   git apply $patch_path/Fast-DDS.patch
   git submodule init
   git submodule update
@@ -180,9 +183,10 @@ sudo apt-get install libacl1-dev -y
 sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
 sudo apt update
 
-CLANG_VER=13
-if [ $ROS_DISTRO == "jazzy" ]; then
-  CLANG_VER=18
-fi
+# CLANG_VER=13
+# if [ $ROS_DISTRO == "jazzy" ]; then
+#   CLANG_VER=18
+# fi
 
-sudo apt install clang-$CLANG_VER -y
+# sudo apt install clang-$CLANG_VER -y
+sudo apt install clang -y
