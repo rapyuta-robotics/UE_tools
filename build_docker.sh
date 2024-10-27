@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ROSDISTRO=$1
+UE5_DIR=${2:-$UE5_DIR} # to mount the clang
 
 if [ $ROSDISTRO = "foxy" ]; then
   UBUNTU_VER=20.04
@@ -13,6 +14,5 @@ else
   exit
 fi
 
-OTHER_ARG=${2:-''}
-echo $ROSDISTRO
-docker build -t yuokamoto1988/ue_ros2_base:$ROSDISTRO . -f Dockerfile.$ROSDISTRO
+OTHER_ARG=${3:-''}
+docker buildx build -t yuokamoto1988/ue_ros2_base:$ROSDISTRO . -f Dockerfile.$ROSDISTRO --build-context ue5_extras=$UE5_DIR/Engine/Extras --progress=plain --no-cache

@@ -17,14 +17,18 @@ export LANG=en_US.UTF-8
 # pay attention it can be 'rmw_fastrtps_dynamic_cpp' too
 export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 
-# use locally installed clang
-CLANG_VER=13
-if [ $ROS_DISTRO == "jazzy" ]; then
-  CLANG_VER=18
-fi
+# UE5
+export MY_SYS_ROOT_PATH=$UE5_DIR"/Engine/Extras/ThirdPartyNotUE/SDKs/HostLinux/Linux_x64/v20_clang-13.0.1-centos7/x86_64-unknown-linux-gnu"
+export CC=$MY_SYS_ROOT_PATH"/bin/clang"
+export CXX=$MY_SYS_ROOT_PATH"/bin/clang++"
 
-export CC="/usr/bin/clang-$CLANG_VER"
-export CXX="/usr/bin/clang++-$CLANG_VER"
+# # use locally installed clang
+# CLANG_VER=13
+# if [ $ROS_DISTRO == "jazzy" ]; then
+#   CLANG_VER=18
+# fi
+# export CC="/usr/bin/clang-$CLANG_VER"
+# export CXX="/usr/bin/clang++-$CLANG_VER"
 
 
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418

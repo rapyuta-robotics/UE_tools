@@ -176,13 +176,13 @@ sudo apt install patchelf -y
 # iceoryx_hoofs dependency
 sudo apt-get install libacl1-dev -y
 
-# clang-13
-sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
-sudo apt update
+# # clang-13
+# sudo su -c "echo 'deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe' >> /etc/apt/sources.list"
+# sudo apt update
 
-CLANG_VER=13
-if [ $ROS_DISTRO == "jazzy" ]; then
-  CLANG_VER=18
-fi
+# CLANG_VER=13
+# if [ $ROS_DISTRO == "jazzy" ]; then
+#   CLANG_VER=18
+# fi
 
-sudo apt install clang-$CLANG_VER -y
+# sudo apt install clang-$CLANG_VER -y
