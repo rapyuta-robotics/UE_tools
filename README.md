@@ -49,7 +49,7 @@ Available images:
 
 
 ## Docker Image build and update rclUE(for developer) 
-1. buidl image: `./build_docker.sh <foxy, humble or jazzy>`
+1. build image: `./build_docker.sh <foxy, humble or jazzy>`
     *This build operation is done as part of image build process. Please check Dockerfile.
     *rclUE already has installed lib and headers and generated codes.
 2. copy base libs: `python3 docker_build_install_codegen.py --type base --install --codegen --rosdistro <foxy, humble or jazzy>`
