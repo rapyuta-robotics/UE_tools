@@ -22,7 +22,7 @@ target_pkgs:
   nav_msgs: ''
   sensor_msgs: ''
   shape_msgs: ''
-  std_msgs: ''
+  std_msgs: 'Std'
   std_srvs: 'StdSrv'
   stereo_msgs: ''
   trajectory_msgs: ''
@@ -31,6 +31,7 @@ target_pkgs:
   pcl_msgs: ''
   #ackermann_msgs: ''
   example_interfaces: ''
+  nav_msgs: ''
   ue_msgs: ''
 
 ## if dependency is "targe", it used same value as target

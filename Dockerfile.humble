@@ -3,7 +3,7 @@ ARG UBUNTU_VER="22.04"
 FROM ubuntu:${UBUNTU_VER} 
 ARG ROSDISTRO="humble"
 
-RUN apt update && apt install sudo
+RUN apt update && apt install sudo -y
 
 RUN adduser --disabled-password --gecos '' admin && \
     adduser admin sudo && \

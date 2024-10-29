@@ -1,10 +1,11 @@
 #!/bin/bash
 
 ROS2_WS=$1
+ROS_DISTRO=$2
 
 cleanup() {
-    sudo rm -r -f $1/build $1/install $1/log
-    sudo rm -r -f $1/build_renamed $1/install_renamed
+    sudo rm -r -f $ROS2_WS/build $ROS2_WS/install $ROS2_WS/log
+    sudo rm -r -f $ROS2_WS/build_renamed $ROS2_WS/install_renamed
 }
 
 cleanup $ROS2_WS
@@ -24,9 +25,14 @@ export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 # export CC=$MY_SYS_ROOT_PATH"/bin/clang"
 # export CXX=$MY_SYS_ROOT_PATH"/bin/clang++"
 
-# use locally installed clang-13
-export CC="/usr/bin/clang-13"
-export CXX="/usr/bin/clang++-13"
+# use locally installed clang
+CLANG_VER=13
+if [ $ROS_DISTRO == "jazzy" ]; then
+  CLANG_VER=18
+fi
+
+export CC="/usr/bin/clang"
+export CXX="/usr/bin/clang++"
 
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418
 export MY_LINKER_FLAGS="-latomic "\

@@ -8,6 +8,8 @@ DEFAULT_PKGS = [
     'action_msgs',
     'actionlib_msgs',
     'builtin_interfaces',
+    'service_msgs',
+    'type_description_interfaces',
     'unique_identifier_msgs',
     'diagnostic_msgs',
     'rosgraph_msgs',
