@@ -73,7 +73,7 @@ if __name__ == '__main__':
     build_ros2(
         buildType = 'pkgs',
         allowed_spaces = args.ros_pkgs,
-        pkgs = args.ros_pkgs
+        pkgs = args.ros_pkgs,
         ros_ws = os.path.join(os.getcwd(), '../ros2_ws')
     )
     install_ros2(
