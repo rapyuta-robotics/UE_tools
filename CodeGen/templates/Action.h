@@ -31,7 +31,7 @@ struct {{data.ModuleAPI}} FROS{{data.UEName}}SGReq
 
 public:
 	{{data.GoalConstantsDec}}
-  	
+
 	TArray<uint8, TFixedAllocator<16>> GoalId;
 
 	{{data.GoalTypes}}
@@ -185,7 +185,7 @@ public:
 		{
 			out_ros_data.goal_id.uuid[i] = GoalId[i];
 		}
-		
+
     	{{data.FeedbackSetROS2}}
 	}
 };
@@ -194,7 +194,7 @@ UCLASS()
 class {{data.ModuleAPI}} UROS2{{data.UEName}}Action : public UROS2GenericAction
 {
 	GENERATED_BODY()
-	
+
 public:
 	virtual void Init() override;
 
@@ -207,19 +207,22 @@ public:
 
   	UFUNCTION(BlueprintCallable)
 	void GetGoalRequest(FROS{{data.UEName}}SGReq& Goal) const;
-	
+
   	UFUNCTION(BlueprintCallable)
 	void SetGoalResponse(const FROS{{data.UEName}}SGRes& Goal);
 
   	UFUNCTION(BlueprintCallable)
 	void GetGoalResponse(FROS{{data.UEName}}SGRes& Goal) const;
-	
+
   	UFUNCTION(BlueprintCallable)
 	void SetResultRequest(const FROS{{data.UEName}}GRReq& Result);
 
   	UFUNCTION(BlueprintCallable)
 	void GetResultRequest(FROS{{data.UEName}}GRReq& Result) const;
-	
+
+    UFUNCTION(BlueprintCallable)
+    void SetGoalIdToResultRequest(FROS{{data.UEName}}GRReq& Result);
+
   	UFUNCTION(BlueprintCallable)
 	void SetResultResponse(const FROS{{data.UEName}}GRRes& Result);
 
@@ -231,7 +234,7 @@ public:
 
   	UFUNCTION(BlueprintCallable)
 	void GetFeedback(FROS{{data.UEName}}FB& Feedback) const;
-	
+
   	UFUNCTION(BlueprintCallable)
 	void SetGoalIdToFeedback(FROS{{data.UEName}}FB& Feedback);
 

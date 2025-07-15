@@ -62,6 +62,14 @@ void UROS2{{data.UEName}}Action::GetResultRequest(FROS{{data.UEName}}GRReq& Resu
     Result.SetFromROS2({{data.NameCap}}_result_request);
 }
 
+void UROS2{{data.UEName}}Action::SetGoalIdToResultRequest(FROS{{data.UEName}}GRReq& Result)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        Result.GoalId[i] = {{data.NameCap}}_goal_request.goal_id.uuid[i];
+    }
+}
+
 void UROS2{{data.UEName}}Action::SetResultResponse(const FROS{{data.UEName}}GRRes& Result)
 {
     Result.SetROS2({{data.NameCap}}_result_response);
