@@ -14,5 +14,4 @@ else
 fi
 
 OTHER_ARG=${2:-''}
-echo $ROSDISTRO
-docker build -t yuokamoto1988/ue_ros2_base:$ROSDISTRO . -f Dockerfile.$ROSDISTRO
+docker build -t yuokamoto1988/ue_ros2_base:$ROSDISTRO . -f Dockerfile.$ROSDISTRO --progress=plain --no-cache
