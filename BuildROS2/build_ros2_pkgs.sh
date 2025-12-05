@@ -23,8 +23,8 @@ if [ $ROS_DISTRO == "jazzy" ]; then
   CLANG_VER=18
 fi
 
-export CC="/usr/bin/clang"
-export CXX="/usr/bin/clang++"
+# export CC="/usr/bin/clang"
+# export CXX="/usr/bin/clang++"
 
 
 # -latomic issue - see more here https://github.com/ros2/ros2/issues/418
@@ -32,8 +32,6 @@ export MY_LINKER_FLAGS="-latomic "\
 "-Wl,-rpath=\${ORIGIN} "\
 "-Wl,-rpath-link=/usr/lib/x86_64-linux-gnu "\
 "-Wl,-rpath-link=/usr/lib "
-
-echo build $PKGS
 
 pushd $ROS2_WS
     source install/setup.bash

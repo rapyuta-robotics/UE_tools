@@ -103,7 +103,6 @@ if __name__ == '__main__':
         target_path = docker_hoeme_dir + '/config_' + id + '.yaml'
         volumes.append(os.path.abspath(config_file) + ':' + target_path)
         command += ' --config ' + target_path
-    
     # update volume mode
     for i, v in enumerate(volumes):
         volumes[i] += ':rw'
@@ -137,14 +136,17 @@ if __name__ == '__main__':
         name=container_name, 
         volumes=volumes,
         detach=True)
-
-    if os.getuid() != 1000:
-        print('Change dir owner to same id as current user')
-        exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
-        exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
-        if args.create_intermediate_image:
-            os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
-            print('Commit image after chown as ' + docker_image + '_chown')
+    
+    # Always fix permissions to ensure write access
+    print('Change dir owner to same id as current user')
+    exec_run_with_log(container, 'chown -R admin:admin /home/admin', user='root')
+    exec_run_with_log(container, 'chown -R admin:admin tmp', user='root')
+    exec_run_with_log(container, 'chown -R admin:admin /home/admin/UE_tools/CodeGen', user='root')
+    exec_run_with_log(container, 'chmod -R 755 /home/admin/UE_tools/CodeGen', user='root')
+    
+    if os.getuid() != 1000 and args.create_intermediate_image:
+        os.system('docker commit ' + container_name + ' ' + docker_image + '_chown')
+        print('Commit image after chown as ' + docker_image + '_chown')
 
 
     if args.build and repos and args.pull_inside_docker:
@@ -155,6 +157,10 @@ if __name__ == '__main__':
         exec_run_with_log(container, pull_cmd, user='admin')
 
     # execute command
+
+    # Ensure CodeGen directory has correct permissions before execution
+    exec_run_with_log(container, 'chown -R admin:admin /home/admin/UE_tools/CodeGen', user='root')
+    exec_run_with_log(container, 'chmod -R 755 /home/admin/UE_tools/CodeGen', user='root')
 
     # command = "/bin/bash -c 'source .python3_venv/bin/activate && " + command + "'"
     print('Execute command in conatainer: ' + command)
