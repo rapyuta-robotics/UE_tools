@@ -89,8 +89,13 @@ Get ROS2 source
 ## Get ROS2 code
 mkdir -p $ROS2_WS/src
 pushd $ROS2_WS
-  wget https://raw.githubusercontent.com/ros2/ros2/$ROS_DISTRO/ros2.repos
-  vcs import src < ros2.repos
+  if [ -z "$SKIP_VCS_IMPORT" ]; then
+    echo "Running vcs import..."
+    wget https://raw.githubusercontent.com/ros2/ros2/$ROS_DISTRO/ros2.repos
+    vcs import src < ros2.repos
+  else
+    echo "Skipping vcs import (SKIP_VCS_IMPORT is set)"
+  fi
 
   echo "
 ##############################################
@@ -130,7 +135,7 @@ echo "
 Clone rclc 
 ########################
 "
-git clone --branch $ROS_DISTRO https://github.com/ros2/rclc.git $ROS2_WS/src/rclc
+git clone --branch $ROS_DISTRO https://github.com/ros2/rclc.git $ROS2_WS/src/ros2/rclc
 
 echo "
 #######################

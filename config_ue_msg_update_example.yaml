@@ -1,0 +1,83 @@
+# example of update config file for ue msg generation
+# no need to update base lib but just update ue_msg
+
+args: #path is relative from home
+  ue_path: UnrealEngine
+  ue_proj_path: turtlebot3-UE 
+  ue_plugin_name: rclUE 
+  ue_plugin_folder_name: rclUE
+  ue_target_3rd_name: ros # sub dir name under ThirdParty
+
+
+# additional repos file path. path is relative from home
+repos: UE_tools/ros2_additional_pkgs.repos
+
+# target is ue_msgs only
+target_pkgs:   
+  ue_msgs: ''
+
+# since ue depends on other msgs, those are listed here.
+# not add in target_pkgs since those msg source are not cloned as a default
+dependency: 
+  actionlib_msgs: ''
+  builtin_interfaces: ''
+  unique_identifier_msgs: ''
+  diagnostic_msgs: ''
+  rosgraph_msgs: ''
+  geometry_msgs: ''
+  nav_msgs: ''
+  sensor_msgs: ''
+  shape_msgs: ''
+  std_msgs: 'Std'
+  std_srvs: 'StdSrv'
+  stereo_msgs: ''
+  trajectory_msgs: ''
+  visualization_msgs: ''
+  tf2_msgs: ''
+  pcl_msgs: ''
+  #ackermann_msgs: ''
+  example_interfaces: ''
+  nav_msgs: ''
+## additional dependency
+## this dict is appended on dependency. 
+## Used to add dependency without overwriting original dependency.
+# dependency_append: ''
+  # your_msg: ''
+
+name_mapping:
+  Covariance: 'Cov'
+  Accel: 'Acc'
+  Vector: 'Vec'
+  Quaternion: 'Quat'
+  Trajectory: 'Traj'
+  Transform: 'TF'
+  Compressed: 'Comp'
+  Error: 'Err'
+  Diagnostics: 'Diag'
+  MultiArray: 'MA'
+  Dimension: 'Dim'
+  With: ''
+  Destination: 'Dest'
+  Reservation: 'Reserv'
+  Exception: 'Except'
+  Config: 'Conf'
+  InteractiveMarker: 'IM'
+  Control: 'Ctrl'
+  Request: 'Req'
+  Response: 'Res'
+  Message: 'Msg'
+  String: 'Str'
+  Image: 'Img'
+  Odometry: 'Odom'
+  Hardware: 'HW'
+
+## additional name_mapping
+## this dict is appended on name_mapping. 
+## Used to add name_mapping without overwriting original dependency.
+# name_mapping_append: 
+#   your_mapping_key: 'your_mapping_value'
+
+
+# msgs which is not copied to project.
+# black_list_msgs:
+#   - 'ROS2WStr' # can't handle wstring in UE.

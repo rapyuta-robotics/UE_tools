@@ -78,6 +78,7 @@ if __name__ == '__main__':
 
     # handle additional repos
     command += ' --skip_pull '
+    env_vars = ['-e', 'SKIP_VCS_IMPORT=1']
     if args.build:
         if not args.pull_inside_docker:
             if not os.path.exists('tmp'):
@@ -90,9 +91,17 @@ if __name__ == '__main__':
             print('Pull repos')
             os.system('vcs import --repos --debug ' + 'tmp/pkgs' + ' < ' + os.path.join(home, repos))
             if args.type == 'base':
+                print('======================================')
+                print('Building BASE type - importing ros2.repos')
+                print('======================================')
                 os.system('wget https://raw.githubusercontent.com/ros2/ros2/' + args.rosdistro + '/ros2.repos')
-                os.system('vcs import --repos --debug  tmp/ros2 < ros2.repos')
+                os.system('vcs import --repos --debug tmp/ros2 < ros2.repos')
                 os.system('touch tmp/ros2/ros2/example_interfaces/COLCON_IGNORE')
+            else:
+                print('======================================')
+                print(f'Building {args.type.upper()} type - skipping ros2.repos import')
+                print('======================================')
+            
             volumes.extend(create_dir_mount(os.path.join(cur_dir, 'tmp'), docker_hoeme_dir + '/UE_tools/ros2_ws/src'))
         elif repos:
             volumes.append(os.path.join(os.environ['HOME'], repos) + ':' + docker_hoeme_dir + repos.replace(home, ''))
@@ -132,7 +141,8 @@ if __name__ == '__main__':
         user=0, #os.getuid(),
         environment={
             "USER_ID":str(os.getuid()), 
-            "GROUP_ID":str(os.getgid())
+            "GROUP_ID":str(os.getgid()),
+            "SKIP_VCS_IMPORT":"1"
         },
         name=container_name, 
         volumes=volumes,
