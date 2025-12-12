@@ -33,6 +33,7 @@ target_pkgs:
   example_interfaces: ''
   nav_msgs: ''
   ue_msgs: ''
+  simulation_interfaces: 'SI'
 
 ## if dependency is "targe", it used same value as target
 ## elif dependency is "default", it uses default value defined in script

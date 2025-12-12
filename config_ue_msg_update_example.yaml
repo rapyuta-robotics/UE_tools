@@ -15,6 +15,7 @@ repos: UE_tools/ros2_additional_pkgs.repos
 # target is ue_msgs only
 target_pkgs:   
   ue_msgs: ''
+  simulation_interfaces: 'SI'
 
 # since ue depends on other msgs, those are listed here.
 # not add in target_pkgs since those msg source are not cloned as a default
